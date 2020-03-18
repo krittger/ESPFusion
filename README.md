@@ -36,11 +36,11 @@ create an R environment with the required packages.
    
 7. Load the required packages:
 
-```R
-library(fields)
-library(raster)
-library(ranger)
-```
+   ```R
+   library(fields)
+   library(raster)
+   library(ranger)
+   ```
    
 8. See what is currently loaded:
 
