@@ -36,13 +36,17 @@ create an R environment with the required packages.
    
 7. Load the required packages:
 
-   > library(fields)
-   > library(raster)
-   > library(ranger)
+```R
+library(fields)
+library(raster)
+library(ranger)
+```
    
 8. See what is currently loaded:
 
-   > (.packages())
+   ```R
+   (.packages())
+   ```
    
    The list of loaded packages should include fields, raster and
    ranger (and will include their dependencies)
