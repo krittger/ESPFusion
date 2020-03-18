@@ -1,6 +1,7 @@
 #specify the number of points to be randomly sampled from the good indices each day. 
 train.size <- 3e5
 
+#loading R packages
 library(fields)
 library(raster)
 library(ranger)
