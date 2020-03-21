@@ -27,8 +27,10 @@ create an R environment with the required packages.
 5. The ESPFusion system requires 3 additional packages. Install
    them with this command:
 
+   ```
    conda activate r_ESPFusion
-   conda install r-fields r-raster r-ranger
+   conda install r-fields r-raster r-ranger r-proj4 r-rgdal
+   ```
    
 6. Open the R interactive interface:
 
@@ -40,6 +42,8 @@ create an R environment with the required packages.
    library(fields)
    library(raster)
    library(ranger)
+   library(proj4)
+   library(rgdal))
    ```
    
 8. See what is currently loaded:
@@ -48,8 +52,8 @@ create an R environment with the required packages.
    (.packages())
    ```
    
-   The list of loaded packages should include fields, raster and
-   ranger (and will include their dependencies)
+   The list of loaded packages should include fields, raster,
+   ranger, proj4 and rgdal (and will include their dependencies)
    
 ## Running the ESPFusion system
 
