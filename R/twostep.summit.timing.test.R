@@ -38,7 +38,8 @@ pred.rast <- raster(paste0(landsat.path,tail(landsat.sc.file.names)[1]))
 ##
 
 ## Setup
-day <- 4080
+day <- 4080 # 20110303 for first test
+print(modis.sc.file.names[day])
 
 mod <- t(matrix(values(raster(paste0(modis.path, modis.sc.file.names[day]))),nc=922,nr=607))
 # format MODIS into a matrix the size of the final downscaled images
