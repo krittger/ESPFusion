@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node=24
 #SBATCH --nodes=1
 #SBATCH --mem=100GB
-#SBATCH --time=160:00:00
+#SBATCH --time=12:00:00
 #SBATCH --output=twostep.summit.timing3.%j.out
 #SBATCH --job-name=twostep-timing3
 
