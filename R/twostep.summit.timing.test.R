@@ -10,12 +10,6 @@ print(Sys.time())
 
 load("/pl/active/SierraBighorn/Rdata/decade.setup.RData")
 
-# Load fitted classification and regression forests
-print(Sys.time())
-load(paste0(Rdata_path,"forest/twostep/classification/ranger.classifier.prob",as.character(train.size),".Rda"))
-load(paste0(Rdata_path,"forest/twostep/regression/ranger.regression.prob",as.character(train.size),".Rda"))
-print(Sys.time())
-
 classes <- rep(NA,dim(daydat)[1])
 regressionvalues <- rep(NA,dim(daydat)[1])
 prob.btwn <- rep(NA,dim(daydat)[1])
@@ -38,7 +32,7 @@ pred.rast <- raster(paste0(landsat.path,tail(landsat.sc.file.names)[1]))
 ##
 
 ## Setup
-day <- 4080 # 20110303 for first test
+day <- 4080 # 20110303
 print(modis.sc.file.names[day])
 
 mod <- t(matrix(values(raster(paste0(modis.path, modis.sc.file.names[day]))),nc=922,nr=607))
@@ -55,17 +49,26 @@ MOD.big <- MOD.big[-theseNA]
 daydat$da <- mod.da[day]
 daydat$mod <- MOD.big
 rm(MOD.big,mod)
+gc()
 
 ##
 ## First step of downscaling: classification
 ##
 
+# Load fitted classification and regression forests
+print(Sys.time())
+load(paste0(Rdata_path,"forest/twostep/classification/ranger.classifier.prob",as.character(train.size),".Rda"))
+print(Sys.time())
+
 print(paste("starting classification",Sys.time()))
 
 for(s in 1:(length(splits)-1)){
+  print(Sys.time())
   these <- splits[s]:splits[s+1]
-  ranger.temp <- predict(ranger.classifier,data=daydat[these,],num.threads=128)
-  # numthreads was found to empirically work a bit faster, no real other justification for this #
+  #ranger.temp <- predict(ranger.classifier,data=daydat[these,],num.threads=128) # tops out at ~112G on Blanca
+  ranger.temp <- predict(ranger.classifier,data=daydat[these,],num.trees=50)
+  # 90g RES (92/93g VIRT) with num.trees=50 without regression tree loaded for s=1
+  # 92/96g (RES/VIRT) for s=2
   class.predictions <- colnames(ranger.temp$predictions)[max.col(ranger.temp$predictions,"first")]
   classes[these][class.predictions == "zero"] <- as.integer(0)
   classes[these][class.predictions == "btwn"] <- as.integer(1)
@@ -73,29 +76,43 @@ for(s in 1:(length(splits)-1)){
 
   prob.btwn[these] <- as.integer(round(100*ranger.temp$predictions[,1]))
   prob.hundred[these] <- as.integer(round(100*ranger.temp$predictions[,2]))
+  rm(these,ranger.temp,class.predictions)
+  gc()
   print(s)
-}   
+  print(Sys.time())
+}
 
 print(paste("classification done",Sys.time()))
 
-rm(these,ranger.temp,class.predictions)
+rm(ranger.classifier)
+gc()
 
 ##
 ## Second step of downscaling: regression for values in (0,100)
 ##
 
+# Load fitted classification and regression forests
+print(Sys.time())
+load(paste0(Rdata_path,"forest/twostep/regression/ranger.regression.prob",as.character(train.size),".Rda"))
+print(Sys.time())
+
 print(paste("starting regression",Sys.time()))
 
 for(s in 1:(length(splits)-1)){
+  print(Sys.time())
   these <- splits[s]:splits[s+1]
-  ranger.temp <- predict(ranger.regression,data=daydat[these,],num.threads=128)
+  #ranger.temp <- predict(ranger.regression,data=daydat[these,],num.threads=128)
+  ranger.temp <- predict(ranger.regression,data=daydat[these,]) # tops out between 60-70Gb for 100 trees
   regressionvalues[these] <- ranger.temp$predictions
   print(s)
+  print(Sys.time())
 }
 
 print(paste("regression done",Sys.time()))
 
 rm(these,ranger.temp)
+rm(ranger.regression)
+gc()
 
 ##
 ## Save out
