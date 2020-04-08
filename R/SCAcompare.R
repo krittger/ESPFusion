@@ -1,3 +1,12 @@
+#' Compares fractional snow-covered area (fSCA) images
+#'
+#' This function compares 2 fSCA images.
+#'
+#' @param myC first image
+#' @param myT second image
+#' @param thresh difference threshold (how is this used?)
+#' @return stats list of comparison statistics
+#' @export 
 SCAcompare <- function(myC,myT,thresh) #remove NA's from myC and myT
 {
 	

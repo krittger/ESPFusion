@@ -11,7 +11,11 @@ create an R environment with the required packages.
 2. Create a new conda environment with r-essentials built from
    CRAN:
    
-   conda create -n r_ESPFusion r-essentials r-base
+   conda create -n r_ESPFusion r-essentials r-base r-optparse
+
+   (For developer tools and to build the package, also needs:
+   
+   conda create -n r_ESPFusion r-essentials r-base r-optparse r-devtools r-roxygen2
    
 3. Activate the environment with:
 
@@ -58,3 +62,8 @@ create an R environment with the required packages.
 ## Running the ESPFusion system
 
 Details here TBD.
+
+## To re-install the system to the current working library location:
+https://tinyheero.github.io/jekyll/update/2015/07/26/making-your-first-R-package.html
+
+
