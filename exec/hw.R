@@ -32,6 +32,10 @@ print(paste("outDir=", opt$outDir))
 print(paste("dayindex=", dayIndex))
 
 myEnv <- ESPFusion::Env()
-print(paste("modisDir: ", myEnv$modisDir))
 print(paste("landsatDir: ", myEnv$landsatDir))
+print(paste("fusionDir: ", myEnv$fusionDir))
+print(paste("30mRows: ", myEnv$SSN30mRows))
+print(paste("30mCols: ", myEnv$SSN30mCols))
+print(paste("500mRows: ", myEnv$SSN500mRows))
+print(paste("500mCols: ", myEnv$SSN500mCols))
 

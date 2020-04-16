@@ -3,16 +3,29 @@
 #' This class stores required directory locations for the ESPFusion
 #' processing system.
 #'
+#' Thanks to Fong Chun Chan for help with building/using packages
+#' https://tinyheero.github.io/jekyll/update/2015/07/26/making-your-first-R-package.html
+#'
 #' @return A list of directory locations used by the downscaling system
 #' @export
 Env <- function()
 {
     me <- list(
-        modisDir = "/path/to/modis/here",
-        landsatDir = "/path/to/landsat/here"
+        ## path to Landsat SSN files
+        landsatDir = "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN/v01/",
+        ## top level output directory, is assumed to contain subdirs:
+        ## regression/, downscaled/, prob.btwn/ and prob.hundred/
+        fusionDir = "/pl/active/SierraBighorn/downscaledv3_test/",
+        ## 
+        ## other shared information
+        SSN30mRows = 14752,
+        SSN30mCols = 9712,
+        SSN500mRows = 922,
+        SSN500mCols = 607
     )
 
     class(me) <- append(class(me), "Env")
     return(me)
 }
+
 

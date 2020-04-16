@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #SBATCH --qos=normal
-#SBATCH --account=ucb-general
+#SBATCH --account=ucb157_summit1
 #SBATCH --ntasks-per-node=1
 #SBATCH --nodes=1
 #SBATCH --time=00:02:00
@@ -15,8 +15,6 @@
 # 2530: 20061204
 # 3014: 20080401
 # 4080: 20110303
-
-SLURM_ARRAY_TASK_ID=12
 
 usage() {
     echo "" 1>&2
