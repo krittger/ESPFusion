@@ -13,3 +13,7 @@ A list of directory locations used by the downscaling system
 This class stores required directory locations for the ESPFusion
 processing system.
 }
+\details{
+Thanks to Fong Chun Chan for help with building/using packages
+https://tinyheero.github.io/jekyll/update/2015/07/26/making-your-first-R-package.html
+}
