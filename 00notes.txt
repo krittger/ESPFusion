@@ -1,0 +1,12 @@
+2020-04-27
+
+Timings for 4 test days:
+
+Job ID	     Date	Time (wall clock)
+4602811_1850 20050123   04:51:00
+4602811_2530 20061204   04:54:00
+4602811_3014 20080401   04:40:00
+4602811_4080 20110303   04:44:00
+
+All results (downscaled/regression/prob.hundred/prob.btwn .tif
+images) are identical to the ones Will generated.
