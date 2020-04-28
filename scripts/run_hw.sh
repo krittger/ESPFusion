@@ -56,6 +56,6 @@ condaenv=$1
 source activate $condaenv
 
 echo "${PROGNAME}: Processing dayIndex: ${SLURM_ARRAY_TASK_ID}" 1>&2
-Rscript --no-save --no-restore ../exec/hw.R ${SLURM_ARRAY_TASK_ID}
+Rscript --no-save --no-restore ../exec/hw.R --dayIndex=${SLURM_ARRAY_TASK_ID}
 
 echo "${PROGNAME}: Done."
