@@ -28,34 +28,3 @@ Env <- function() {
     class(me) <- append(class(me), "Env")
     return(me)
 }
-
-#' PrepOutDirs - creates required output directory structure
-#' 
-#' @export
-PrepOutDirs <- function(dirName, train.size) {
-    print(paste0("Prepping ", dirName, "..."))
-
-    ## Check/make output directories if they don't already exist
-    if (!(dir.exists(dirName))) {
-        print(paste0("Making new output directory: ", dirName))
-        dir.create(dirName, showWarnings=FALSE)
-    }
-
-    dlist <- c("downscaled", "prob.btwn", "prob.hundred", "regression")
-    outDirs <- list()
-    for (d in dlist) {
-        thisDir <- file.path(dirName, d, as.character(train.size))
-        if (!(dir.exists(thisDir))) {
-            print(paste0("Making new output directory: ",thisDir))
-            dir.create(thisDir, recursive=TRUE, showWarnings=FALSE)
-        }
-        outDirs[d] <- thisDir
-    }
-
-    print(paste0("...output directories OK"))
-
-    return(outDirs)
-    
-}    
-
-

@@ -10,3 +10,23 @@ Job ID	     Date	Time (wall clock)
 
 All results (downscaled/regression/prob.hundred/prob.btwn .tif
 images) are identical to the ones Will generated.
+
+2020-05-26
+
+Once we have produced daily SSN.*.snow_fraction.*tif files using
+the SnowTodayV00 mosaics as input, we need to re-run the
+preprocessing Will and Mitch set up, to produce input lookup
+files by year.
+
+This will facilitate sbatch scripts as job arrays for
+n=1,ndaysinyear.
+
+Consider option to separate the parts of the setup file that are
+static and those that are related to the dates/files we are
+processing.
+
+What's currently in it?
+
+See notes in
+
+https://nsidc.org/jira/browse/SIER-109
