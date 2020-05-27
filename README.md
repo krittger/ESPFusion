@@ -182,7 +182,7 @@ To work on a new feature or bug fix:
    
 For additional details and other package features, see:
 
-https://tinyheero.github.io/jekyll/update/2015/07/26/making-your-first-R-package.html
-https://r-pkgs.org/tests.html
+* https://tinyheero.github.io/jekyll/update/2015/07/26/making-your-first-R-package.html
+* https://r-pkgs.org/tests.html
 
 
