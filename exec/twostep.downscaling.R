@@ -43,7 +43,7 @@ classes <- rep(NA, dim(daydat)[1])
 regressionvalues <- rep(NA, dim(daydat)[1])
 prob.btwn <- rep(NA, dim(daydat)[1])
 prob.hundred <- rep(NA, dim(daydat)[1])
-downscaled <- rep(NA, times=myEnv$SSN30mCols * myEnv$SSN30mRows)
+downscaled <- rep(NA, times=myEnv$HiResCols * myEnv$HiResRows)
 
 ### For classification, done in chunks,
 ### avoids memory issues when trying to do all points simultaneously
@@ -66,15 +66,17 @@ pred.rast <- raster(file.path(myEnv$landsatDir, tail(landsat.sc.file.names)[1]))
 day <- opt$dayIndex
 print(paste0("Processing MODIS file: ", modis.sc.file.names[day]))
 
-## FIXME: why are rows/columns transposed?
-## Is this something with Matlab/R?
+## Note that rows/cols are transposed because R's matrix and raster
+## packages don't define them the same way
 mod <- t(matrix(values(raster(file.path(modis.path, modis.sc.file.names[day]))),
-                nc=myEnv$SSN500mRows,
-                nr=myEnv$SSN500mCols))
+                nc=myEnv$LowResRows,
+                nr=myEnv$LowResCols))
 
 ## format MODIS into a matrix the size of the final downscaled images
 ## Consider adding factor to Env variables
-MOD.big <- array(dim=c(myEnv$SSN30mRows, myEnv$SSN30mCols)) 
+## FIXME: move the hardcoded factor of 16 that relates HiRes to LowRes
+## to the Env class
+MOD.big <- array(dim=c(myEnv$HiResRows, myEnv$HiResCols)) 
 for(k in 1:dim(mod)[1]){
     for(ell in 1:dim(mod)[2]){
         MOD.big[(16*k-15):(16*k),(16*ell-15):(16*ell)] <- mod[k,ell]
@@ -163,11 +165,15 @@ gc()
 
 print(paste0(Sys.time(), ": saving rasters..."))
 
+## FIXME: move the extent shortname "SSN" to the Env class, since
+## it is related to the HiRes/LowRes dimensions.  Then build the
+## output file names here using whatever that name is.
+
 # regression values
 downscaled[-theseNA] <- as.integer(round(regressionvalues)) 	    
 values(pred.rast) <- c(t(matrix(downscaled,
-                                nr=myEnv$SSN30mRows,
-                                nc=myEnv$SSN30mCols)))
+                                nr=myEnv$HiResRows,
+                                nc=myEnv$HiResCols)))
 outFile <- file.path(outDirs$regression,
                      sprintf("SSN.downscaled.regression.%s.v3.%s.tif",
                              format(mod.date[day],"%Y%m%d"),
@@ -184,8 +190,8 @@ print(paste(Sys.time(), ": regression saved to: ", outFile))
 downscaled[-theseNA][classes == 0] <- as.integer(0)
 downscaled[-theseNA][classes == 2] <- as.integer(100)
 values(pred.rast) <- c(t(matrix(downscaled,
-                                nr=myEnv$SSN30mRows,
-                                nc=myEnv$SSN30mCols)))
+                                nr=myEnv$HiResRows,
+                                nc=myEnv$HiResCols)))
 outFile <- file.path(outDirs$downscaled,
                      sprintf("SSN.downscaled.%s.v3.%s.tif",
                              format(mod.date[day],"%Y%m%d"),
@@ -201,8 +207,8 @@ print(paste(Sys.time(), ": full downscaled saved to: ", outFile))
 # probabilities of (0,100)
 downscaled[-theseNA] <- prob.btwn
 values(pred.rast) <- c(t(matrix(downscaled,
-                                nr=myEnv$SSN30mRows,
-                                nc=myEnv$SSN30mCols)))
+                                nr=myEnv$HiResRows,
+                                nc=myEnv$HiResCols)))
 outFile <- file.path(outDirs$prob.btwn,
                      sprintf("SSN.downscaled.prob.0.100.%s.v3.%s.tif",
                              format(mod.date[day], "%Y%m%d"),
@@ -218,8 +224,8 @@ print(paste(Sys.time(), ": prob of (0,100) saved to:", outFile))
 # probabilities of 100% [we can get P(0) = 1 - P(100) - P((0,100))]
 downscaled[-theseNA] <- prob.hundred
 values(pred.rast) <- c(t(matrix(downscaled,
-                                nr=myEnv$SSN30mRows,
-                                nc=myEnv$SSN30mCols)))
+                                nr=myEnv$HiResRows,
+                                nc=myEnv$HiResCols)))
 outFile <- file.path(outDirs$prob.hundred,
                      sprintf("SSN.downscaled.prob.100.%s.v3.%s.tif",
                              format(mod.date[day], "%Y%m%d"),
