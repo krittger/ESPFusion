@@ -13,19 +13,19 @@
 #' dirs = PrepOutDirs("/my/path/", 3e+05)
 #' 
 #' @export
-PrepOutDirs <- function(dirName, tsize) {
-    print(paste0("Prepping ", dirName, "..."))
+PrepOutDirs <- function(folder, tsize) {
+    print(paste0("Prepping ", folder, "..."))
 
     ## Check/make output directories if they don't already exist
-    if (!(dir.exists(dirName))) {
-        print(paste0("Making new output directory: ", dirName))
-        dir.create(dirName, showWarnings=FALSE)
+    if (!(dir.exists(folder))) {
+        print(paste0("Making new output directory: ", folder))
+        dir.create(folder, showWarnings=FALSE)
     }
 
     dlist <- c("downscaled", "prob.btwn", "prob.hundred", "regression")
     outDirs <- list()
     for (d in dlist) {
-        thisDir <- file.path(dirName, d, as.character(tsize))
+        thisDir <- file.path(folder, d, as.character(tsize))
         if (!(dir.exists(thisDir))) {
             print(paste0("Making new output directory: ",thisDir))
             dir.create(thisDir, recursive=TRUE, showWarnings=FALSE)
