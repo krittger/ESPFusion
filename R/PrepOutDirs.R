@@ -3,7 +3,7 @@
 #' Creates required output directory structure for downscaling.
 #' If any of the directories don't already exist they will be created.
 #'
-#' @param dirName string name of directory where new structure will be created
+#' @param folder string name of directory where new structure will be created
 #' @param tsize num value of training size, used in new subdirectories
 #' 
 #' @return list of output directories, for
