@@ -6,29 +6,67 @@ Data fusion for downscaling Earth Surface Properties
 This system use the R programming language.  You will need to
 create an R environment with the required packages.
 
-1. Download and install conda from Anaconda (or Miniconda).
+1. Download and install conda from Anaconda (or Miniconda). For
+   Miniconda, at the Summit command prompt, get the latest Miniconda:
 
-2. Create a new conda environment with r-essentials built from
+   ```
+   wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   ```
+
+   Then install Miniconda like this:
+
+   ```
+   bash Miniconda3-latest-Linux-x86_64.sh
+   ```
+
+   Follow the prompts for all the default, but when prompted for the installation
+   directory, change it from the default in /home/$USER/miniconda3 to your
+   projects directory:  /projects/$USER/miniconda3
+   At the end of the installation, answer yes to the prompt to put this miniconda
+   at the front of your PATH.
+
+   After successful installation, log out and log back in and do
+
+   ```
+   which conda
+   ```
+
+   which should return to the path to the newly installed conda in your /projects/
+   directory.
+
+2. Set up your conda channels to look on the conda-forge online channel for the
+   packages we will need.  Create a new file in your home directory named ".condarc" and
+   put the following commands in it:
+
+   ```
+   channels:
+    - https://conda.anaconda.org/conda-forge/channel/main
+    - defaults
+   always_yes: true
+   show_channel_urls: true
+   ```
+   
+3. Create a new conda environment with r-essentials built from
    CRAN:
    
    conda create -n r_ESPFusion r-essentials r-base r-optparse
 
-   (For developer tools and to build the package, also needs:
+   (For developer tools and to build the package, you should use:
    
    conda create -n r_ESPFusion r-essentials r-base r-optparse r-devtools r-roxygen2
    
-3. Activate the environment with:
+4. Activate the environment with:
 
    conda activate r_ESPFusion
    
-4. List the packages in the environment:
+5. List the packages in the environment:
 
    conda list
    
    This should indicate that the r-base package is installed, and
    will also include r-matrix
    
-5. The ESPFusion system requires 3 additional packages. Install
+6. The ESPFusion system requires 5 additional packages. Install
    them with this command:
 
    ```
@@ -36,11 +74,11 @@ create an R environment with the required packages.
    conda install r-fields r-raster r-ranger r-proj4 r-rgdal
    ```
    
-6. Open the R interactive interface:
+7. Open the R interactive interface:
 
    R
    
-7. Load the required packages:
+8. Load the required packages:
 
    ```R
    library(fields)
@@ -50,7 +88,7 @@ create an R environment with the required packages.
    library(rgdal))
    ```
    
-8. See what is currently loaded:
+9. See what is currently loaded:
 
    ```R
    (.packages())
@@ -59,7 +97,14 @@ create an R environment with the required packages.
    The list of loaded packages should include fields, raster,
    ranger, proj4 and rgdal (and will include their dependencies)
 
-9. To develop and/or run ESPFusion routines, install them this way:
+10. Clone the ESPFusion package from github to your /projects/$USER directory:
+
+   ```
+   cd /projects/$USER
+   git clone https://github.com/mjbrodzik/ESPFusion.git
+   ```
+
+11. To develop and/or run ESPFusion routines, install them this way:
 
    ```R
    devtools::install()
