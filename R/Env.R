@@ -19,10 +19,10 @@ Env <- function() {
         setupFile = "/pl/active/SierraBighorn/Rdata/decade.setup.RData",
         ## 
         ## other shared information
-        SSN30mRows = 14752,
-        SSN30mCols = 9712,
-        SSN500mRows = 922,
-        SSN500mCols = 607
+        HiResRows = 14752,
+        HiResCols = 9712,
+        LowResRows = 922,
+        LowResCols = 607
     )
 
     class(me) <- append(class(me), "Env")
