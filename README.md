@@ -53,7 +53,7 @@ create an R environment with the required packages.
 
    (For developer tools and to build the package, you should use:
    
-   conda create -n r_ESPFusion r-essentials r-base r-optparse r-devtools r-roxygen2
+   conda create -n r_ESPFusion r-essentials r-base r-optparse r-devtools r-roxygen2 r-testthat
    
 4. Activate the environment with:
 
