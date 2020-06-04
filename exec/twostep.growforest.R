@@ -14,6 +14,7 @@ check_create_dir <- function(new.dir)
 	}
 }
 
+#######
 
 #creating directories where data will be saved
 check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3"))
