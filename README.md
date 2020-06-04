@@ -48,21 +48,29 @@ create an R environment with the required packages.
    
 3. Create a new conda environment with r-essentials built from
    CRAN:
-   
+
+   ```
    conda create -n r_ESPFusion r-essentials r-base r-optparse
+   ```
 
    (For developer tools and to build the package, you should use:
-   
-   conda create -n r_ESPFusion r-essentials r-base r-optparse r-devtools r-roxygen2
+
+   ```
+   conda create -n r_ESPFusion r-essentials r-base r-optparse r-devtools r-roxygen2 r-testthat
+   ```
    
 4. Activate the environment with:
 
+   ```
    conda activate r_ESPFusion
+   ```
    
 5. List the packages in the environment:
 
+   ```
    conda list
-   
+   ```
+
    This should indicate that the r-base package is installed, and
    will also include r-matrix
    
@@ -76,11 +84,15 @@ create an R environment with the required packages.
    
 7. Open the R interactive interface:
 
+   ```
    R
+   ```
    
 8. Load the required packages:
 
-   ```R
+   In R:
+
+   ```
    library(fields)
    library(raster)
    library(ranger)
@@ -90,7 +102,9 @@ create an R environment with the required packages.
    
 9. See what is currently loaded:
 
-   ```R
+   In R:
+
+   ```
    (.packages())
    ```
    
@@ -99,6 +113,8 @@ create an R environment with the required packages.
 
 10. Clone the ESPFusion package from github to your /projects/$USER directory:
 
+   In a terminal:
+   
    ```
    cd /projects/$USER
    git clone https://github.com/mjbrodzik/ESPFusion.git
@@ -106,7 +122,9 @@ create an R environment with the required packages.
 
 11. To develop and/or run ESPFusion routines, install them this way:
 
-   ```R
+   In R:
+   
+   ```
    devtools::install()
    ```
 
