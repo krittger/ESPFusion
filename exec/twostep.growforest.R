@@ -7,39 +7,9 @@ library(raster)
 library(ranger)
 
 
-### I think these can be removed
-check_create_dir <- function(new.dir)
-{
-	if(!dir.exists(new.dir)){
-		dir.create(new.dir)
-	}
-}
-#creating directories where data will be saved
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/downscaled"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/prob.btwn"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/prob.hundred"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/regression"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/downscaled/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/prob.btwn/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/prob.hundred/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/regression/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/pix/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/pix/",as.character(train.size),"/statpix"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/pix/",as.character(train.size),"/rasterpix"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/forest"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/forest/twostep"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/forest/twostep/classification"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/forest/twostep/regression"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/SCA"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/SCA/",as.character(train.size)))
-### through here...
-
-
 ## List data files and set up region bounds
 ### modis.path needs to be updated to include v02 *and* use all years within .../v02/year#/
-modis.path <- "/pl/active/SierraBighorn/scag/MODIS/SSN/v01/"
+modis.path <- "/pl/active/SierraBighorn/scag/MODIS/SSN/v02/"
 ### these are hardcoded and probably shouldn't be
 clear.landsat.path <- "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN/v01/"
 cloudy.landsat.path <- "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN_cloudy/v01/"
@@ -47,7 +17,14 @@ Rdata_path <- "/pl/active/SierraBighorn/Rdata/"
 ### through here
 
 ### note that this uses only a single modis path here, so with new directory structure needs to be changed
-modis.file.names <- list.files(modis.path)
+modis.v02.file.names <- list.files(modis.path)
+#### select filename starting with an year
+modis.file.years <- modis.v02.file.names[grepl("20",modis.v02.file.names)]
+modis.file.names <- NULL
+for (name in modis.file.years) {
+  modis.file.names <- c(modis.file.names,list.files(paste0(modis.path,name)))
+}
+#### file names does not have viewable in v02
 modis.sc.file.names <- modis.file.names[!grepl("viewable",modis.file.names)]
 ### through here
 
@@ -71,9 +48,10 @@ rm(clear.landsat.file.names, cloudy.landsat.file.names, cloudy.sat.mask.file.nam
 
 ## Get dates
 ### CHECK: make sure the substr on the new modis.sc.file.names actually grabs yyyymmdd
+####changed start and end to reflect date position
 mod.date <- lst.date <- cloudy.lst.date <- NULL
 for(i in 1:length(modis.sc.file.names)){
-	mod.date[i] <- substr(modis.sc.file.names[i],start=15,stop=22)
+	mod.date[i] <- substr(modis.sc.file.names[i],start=5,stop=12)
 	}
 for(i in 1:length(landsat.sc.file.names)){
 	lst.date[i] <- substr(landsat.sc.file.names[i],start=14,stop=21)
@@ -125,7 +103,8 @@ mod.yr <- as.integer(format(mod.date,"%Y"))
 
 these <- ((mod.yr %% 4) == 0) & (mod.da >= 59)
 mod.da[these] <- mod.da[these] - 1
-rm(these,mod.yr)
+#### using mod.yr later for path definition
+rm(these)
 
 mod.da <- mod.da + 1
 nday <- length(mod.da)
@@ -243,7 +222,8 @@ for(day in 1:nday){
 	train.LST[[day]] <- LST[train.indices.day]
 	rm(LST)
 ### might need to be careful here since this only calls a single modis.path	
-	mod <- t(matrix(values(raster(paste0(modis.path, modis.sc.file.names[day]))),nc=922,nr=607))
+####added year inside path
+	mod <- t(matrix(values(raster(paste0(modis.path,mod.yr[day],"/", modis.sc.file.names[day]))),nc=922,nr=607))
 ###
 	MOD.big <- array(dim=c(14752,9712)) 
 		for(k in 1:dim(mod)[1]){
@@ -276,7 +256,6 @@ for(day in 1:nday){
 train.da.nNA <- unlist(lapply(train.LST,length))
 sum(train.da.nNA)/1e6 # how many millions of data points you grabbed
 ### to here
-
 #training data fully constructed here
 
 train.dat <- data.frame(lst=unlist(train.LST),
@@ -327,7 +306,7 @@ ranger.classifier$prediction.error
 
 ### Need to change the filename to reflect v02
 print(Sys.time())
-save(ranger.classifier,file=paste0(Rdata_path,"forest/twostep/classification/ranger.classifier.prob",as.character(train.size),".Rda"))
+save(ranger.classifier,file=paste0(Rdata_path,"forest/twostep/classification/ranger.classifier.prob.v02",as.character(train.size),".Rda"))
 print(Sys.time())
 rm(ranger.classifier)
 ###
@@ -347,7 +326,7 @@ print(object.size(ranger.regression),units="GB")
 ranger.regression$prediction.error
 
 ### same thing: need to change filename to reflect v02
-save(ranger.regression,file=paste0(Rdata_path,"/forest/twostep/regression/ranger.regression.prob",as.character(train.size),".Rda"))
+save(ranger.regression,file=paste0(Rdata_path,"/forest/twostep/regression/ranger.regression.prob.v02",as.character(train.size),".Rda"))
 ###
 
 
