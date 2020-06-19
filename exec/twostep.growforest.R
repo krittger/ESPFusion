@@ -9,7 +9,7 @@ library(ranger)
 
 ## List data files and set up region bounds
 ### modis.path needs to be updated to include v02 *and* use all years within .../v02/year#/
-modis.path <- "/pl/active/SierraBighorn/scag/MODIS/SSN/v02/"
+modis.path <- "/pl/active/SierraBighorn/scag/MODIS/SSN/v03/"
 ### these are hardcoded and probably shouldn't be
 clear.landsat.path <- "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN/v01/"
 cloudy.landsat.path <- "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN_cloudy/v01/"
@@ -17,13 +17,8 @@ Rdata_path <- "/pl/active/SierraBighorn/Rdata/"
 ### through here
 
 ### note that this uses only a single modis path here, so with new directory structure needs to be changed
-modis.v02.file.names <- list.files(modis.path)
-#### select filename starting with an year
-modis.file.years <- modis.v02.file.names[grepl("20",modis.v02.file.names)]
-modis.file.names <- NULL
-for (name in modis.file.years) {
-  modis.file.names <- c(modis.file.names,list.files(paste0(modis.path,name)))
-}
+modis.file.names <- list.files(modis.path,recursive = TRUE)
+
 #### file names does not have viewable in v02
 modis.sc.file.names <- modis.file.names[!grepl("viewable",modis.file.names)]
 ### through here
@@ -51,10 +46,10 @@ rm(clear.landsat.file.names, cloudy.landsat.file.names, cloudy.sat.mask.file.nam
 ####changed start and end to reflect date position
 mod.date <- lst.date <- cloudy.lst.date <- NULL
 for(i in 1:length(modis.sc.file.names)){
-	mod.date[i] <- substr(modis.sc.file.names[i],start=5,stop=12)
+	mod.date[i] <- regmatches(modis.sc.file.names[i], regexpr("\\d{4}\\d{2}\\d{2}",modis.sc.file.names[i]))
 	}
 for(i in 1:length(landsat.sc.file.names)){
-	lst.date[i] <- substr(landsat.sc.file.names[i],start=14,stop=21)
+	lst.date[i] <- regmatches(landsat.sc.file.names[i], regexpr("\\d{4}\\d{2}\\d{2}",landsat.sc.file.names[i]))
 	}
 
 mod.date <- as.integer(mod.date)
@@ -104,7 +99,7 @@ mod.yr <- as.integer(format(mod.date,"%Y"))
 these <- ((mod.yr %% 4) == 0) & (mod.da >= 59)
 mod.da[these] <- mod.da[these] - 1
 #### using mod.yr later for path definition
-rm(these)
+rm(these,mod.yr)
 
 mod.da <- mod.da + 1
 nday <- length(mod.da)
@@ -223,16 +218,11 @@ for(day in 1:nday){
 	rm(LST)
 ### might need to be careful here since this only calls a single modis.path	
 ####added year inside path
-	mod <- t(matrix(values(raster(paste0(modis.path,mod.yr[day],"/", modis.sc.file.names[day]))),nc=922,nr=607))
+	MOD.big <- t(matrix(values(raster(paste0(modis.path, modis.sc.file.names[day]))),nc=14752,nr=9712))
 ###
-	MOD.big <- array(dim=c(14752,9712)) 
-		for(k in 1:dim(mod)[1]){
-			for(ell in 1:dim(mod)[2]){
-				MOD.big[(16*k-15):(16*k),(16*ell-15):(16*ell)] <- mod[k,ell]
-		}
-	}
+
   train.MOD[[day]] <- MOD.big[train.indices.day]
-  rm(MOD.big,mod)
+  rm(MOD.big)
 
   train.slope[[day]] <- slope[train.indices.day]
   train.asp[[day]] <- asp[train.indices.day]
@@ -306,11 +296,10 @@ ranger.classifier$prediction.error
 
 ### Need to change the filename to reflect v02
 print(Sys.time())
-save(ranger.classifier,file=paste0(Rdata_path,"forest/twostep/classification/ranger.classifier.prob.v02",as.character(train.size),".Rda"))
+save(ranger.classifier,file=paste0(Rdata_path,"forest/ranger.classifier.SCA.v03",as.character(train.size),".Rda"))
 print(Sys.time())
 rm(ranger.classifier)
 ###
-
 
 ##
 ## Growing and saving the regression forest
@@ -326,7 +315,7 @@ print(object.size(ranger.regression),units="GB")
 ranger.regression$prediction.error
 
 ### same thing: need to change filename to reflect v02
-save(ranger.regression,file=paste0(Rdata_path,"/forest/twostep/regression/ranger.regression.prob.v02",as.character(train.size),".Rda"))
+save(ranger.regression,file=paste0(Rdata_path,"/forest/ranger.regression.SCA.v03",as.character(train.size),".Rda"))
 ###
 
 
