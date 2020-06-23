@@ -42,15 +42,20 @@ Env <- function() {
         
     ## default training size
     train.size = 3e+05
-        
-    ## regionShortName (used as prefix for regional filenames)
-    regionShortName = "SSN"
-        
-    ## co-located region dimensions, at Landsat and MODIS resolutions
-    HiResRows = 14752
-    HiResCols = 9712
-    LowResRows = 922
-    LowResCols = 607
+
+    ## study extent data:
+    ## shortName (used as prefix for regional filenames)
+    ## highResRows/Cols : dimensions of high resolution matrix
+    ## lowResRows/Cols : dimensions of low resolution matrix
+    ## factor : multiplicative factor that relates high to low resolution
+    ##          values must be integer factor,
+    ##          e.g. lowResCols * factor = highResCols
+    ## FIXME: we need to enforce this 
+    extent <- list("shortName" = "SSN",
+                   "highResRows" = 14752,
+                   "highResCols" = 9712,
+                   "lowResRows" = 922,
+                   "lowResCols" = 607)
     
     me <- list(
 
@@ -59,15 +64,9 @@ Env <- function() {
         thisEnv = thisEnv,
 
         ## Getters/Setters
-        getRegionShortName = function() {
+        getExtent = function(extentName) {
 
-            return(get("regionShortName", thisEnv))
-
-        },
-
-        setRegionShortName = function(value) {
-
-            return(assign("regionShortName", value, thisEnv))
+            return(get("extent", thisEnv))
 
         },
 

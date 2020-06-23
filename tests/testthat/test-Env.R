@@ -2,7 +2,7 @@ test_that("Env returns expected region information", {
 
     myEnv <- Env()
     extent <- myEnv$getExtent("SouthernSierraNevada")
-    expect_equal(extent$shortName(), "SSN")
+    expect_equal(extent$shortName, "SSN")
 
 })
 test_that("Env returns good v01 MODIS filename", {
