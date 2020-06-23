@@ -14,21 +14,18 @@
 Env <- function() {
 
     ## Get the environment for this instance of the function
-    thisObjEnv <- environment()
+    thisEnv <- environment()
 
     ## Path that is common to many others
     topDir <- "/pl/active/SierraBighorn"
 
-    ## regionShortName (used as prefix for regional filenames)
-    regionShortName = "SSN"
-        
     ## path to Landsat region (e.g. SSN) files
     landsatDir = paste0(topDir,
                         "/scag/Landsat/UCSB_v3_processing/SSN/v01/")
         
     ## path to co-located MODIS region (e.g. SSN) files
     modisDir = paste0(topDir,
-                      "/scag/MODIS/SSN/v01/")
+                      "/scag/MODIS/SSN")
         
     ## path to model regression and classifiers directories
     modelDir = paste0(topDir,
@@ -46,6 +43,9 @@ Env <- function() {
     ## default training size
     train.size = 3e+05
         
+    ## regionShortName (used as prefix for regional filenames)
+    regionShortName = "SSN"
+        
     ## co-located region dimensions, at Landsat and MODIS resolutions
     HiResRows = 14752
     HiResCols = 9712
@@ -56,24 +56,64 @@ Env <- function() {
 
         ## Define the environment where this list is defined so
         ## that I can refer to it in methods below
-        thisObjEnv = thisObjEnv,
+        thisEnv = thisEnv,
 
-        train.size = function() {
+        ## Getters/Setters
+        getRegionShortName = function() {
 
-            return(get("train.size", thisObjEnv))
+            return(get("regionShortName", thisEnv))
 
         },
 
-        modisFileFor = function(year, doy) {
+        setRegionShortName = function(value) {
+
+            return(assign("regionShortName", value, thisEnv))
+
+        },
+
+        getTrain.size = function() {
+
+            return(get("train.size", thisEnv))
+
+        },
+
+        setTrain.size = function(value) {
+
+            return(assign("train.size", value, thisEnv))
+
+        },
+
+        ## Other useful methods
+        modisFileFor = function(year, doy, varName, version) {
+
+            modisDir <- file.path(get("modisDir", thisEnv),
+                                  sprintf("v%02d", version))
+
+            ## version v01 files are all in same directory, (which is slow)
+            ## later version files are in year subdirs
+            if (version > 1) {
+                modisDir <- file.path(modisDir, "????")
+            }
+
+            ## filenames are yyyymmdd, so convert doy
+            origin <- sprintf("%04d-01-01", year)
+            yyyymmdd <- format(as.Date(doy - 1, origin), "%Y%m%d")
+
+            ## look for date + period + anything + period + varName + period
+            ## \\. - matches a period
+            ## .* - matches 0 or more of any character
+            pattern <- sprintf("%s\\..*\\.%s\\.", yyyymmdd, varName)
             
-            return(get("modisDir", thisObjEnv))
+            return(list.files(Sys.glob(modisDir),
+                              pattern=pattern,
+                              full.names=TRUE))
             
         }
         
     )
 
     ## Define the value of the list within the current environment
-    assign('this', me, envir=thisObjEnv)
+    assign('this', me, envir=thisEnv)
 
     ## Set the name for the class
     class(me) <- append(class(me), "Env")
