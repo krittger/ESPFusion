@@ -4,10 +4,10 @@
 \alias{PrepOutDirs}
 \title{PrepOutDirs}
 \usage{
-PrepOutDirs(dirName, tsize)
+PrepOutDirs(folder, tsize)
 }
 \arguments{
-\item{dirName}{string name of directory where new structure will be created}
+\item{folder}{string name of directory where new structure will be created}
 
 \item{tsize}{num value of training size, used in new subdirectories}
 }

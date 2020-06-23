@@ -19,11 +19,22 @@ Env <- function() {
     ## Path that is common to many others
     topDir <- "/pl/active/SierraBighorn"
 
-    ## path to Landsat region (e.g. SSN) files
+    ## path to non-cloudy Landsat region (e.g. SSN) files
+    ## (this path does not include the version level,
+    ## assumes it is 'vXX')
     landsatDir = paste0(topDir,
-                        "/scag/Landsat/UCSB_v3_processing/SSN/v01/")
+                        "/scag/Landsat/UCSB_v3_processing/SSN/")
+        
+    ## path to cloudy Landsat region (e.g. SSN) files
+    ## that have been masked for probable clouds
+    ## (this path does not include the version level,
+    ## assumes it is 'vXX')
+    cloudyLandsatDir = paste0(topDir,
+                        "/scag/Landsat/UCSB_v3_processing/SSN_cloudy/")
         
     ## path to co-located MODIS region (e.g. SSN) files
+    ## (this path does not include the version level,
+    ## assumes it is 'vXX')
     modisDir = paste0(topDir,
                       "/scag/MODIS/SSN")
         
@@ -43,20 +54,6 @@ Env <- function() {
     ## default training size
     train.size = 3e+05
 
-    ## study extent data:
-    ## shortName (used as prefix for regional filenames)
-    ## highResRows/Cols : dimensions of high resolution matrix
-    ## lowResRows/Cols : dimensions of low resolution matrix
-    ## factor : multiplicative factor that relates high to low resolution
-    ##          values must be integer factor,
-    ##          e.g. lowResCols * factor = highResCols
-    ## FIXME: we need to enforce this 
-    extent <- list("shortName" = "SSN",
-                   "highResRows" = 14752,
-                   "highResCols" = 9712,
-                   "lowResRows" = 922,
-                   "lowResCols" = 607)
-    
     me <- list(
 
         ## Define the environment where this list is defined so
@@ -64,12 +61,6 @@ Env <- function() {
         thisEnv = thisEnv,
 
         ## Getters/Setters
-        getExtent = function(extentName) {
-
-            return(get("extent", thisEnv))
-
-        },
-
         getTrain.size = function() {
 
             return(get("train.size", thisEnv))
@@ -85,13 +76,13 @@ Env <- function() {
         ## Other useful methods
         modisFileFor = function(year, doy, varName, version) {
 
-            modisDir <- file.path(get("modisDir", thisEnv),
-                                  sprintf("v%02d", version))
+            dir <- file.path(get("modisDir", thisEnv),
+                             sprintf("v%02d", version))
 
             ## version v01 files are all in same directory, (which is slow)
             ## later version files are in year subdirs
             if (version > 1) {
-                modisDir <- file.path(modisDir, "????")
+                dir <- file.path(dir, "????")
             }
 
             ## filenames are yyyymmdd, so convert doy
@@ -103,9 +94,67 @@ Env <- function() {
             ## .* - matches 0 or more of any character
             pattern <- sprintf("%s\\..*\\.%s\\.", yyyymmdd, varName)
             
-            return(list.files(Sys.glob(modisDir),
+            return(list.files(Sys.glob(dir),
                               pattern=pattern,
                               full.names=TRUE))
+            
+        },
+        
+        allModisFiles = function(varName, version) {
+
+            dir <- file.path(get("modisDir", thisEnv),
+                             sprintf("v%02d", version))
+
+            ## version v01 files are all in same directory, (which is slow)
+            ## later version files are in year subdirs
+            ## do this so that any other sibling directories are ignored
+            if (version > 1) {
+                dir <- file.path(dir, "????/")
+                recursive <- TRUE
+            } else {
+                recursive <- FALSE
+            }
+
+            ## look recursively for period + varName + period
+            ## \\. - matches a period
+            pattern <- sprintf("\\.%s\\.", varName)
+            
+            return(list.files(Sys.glob(dir),
+                              pattern=pattern,
+                              recursive=recursive,
+                              full.names=TRUE))
+            
+        },
+        
+        allLandsatFiles = function(varName, version, includeCloudy=FALSE) {
+
+            dir <- file.path(get("landsatDir", thisEnv),
+                             sprintf("v%02d", version))
+
+            ## look for period + varName + period
+            ## \\. - matches a period
+            pattern <- sprintf("\\.%s\\.", varName)
+            
+            out <- list.files(Sys.glob(dir),
+                              pattern=pattern,
+                              full.names=TRUE)
+
+            if (includeCloudy) {
+
+                message("Including cloudy-masked Landsat files...")
+
+                dir <- file.path(get("cloudyLandsatDir", thisEnv),
+                                 sprintf("v%02d", version))
+
+                cloudyList <- list.files(Sys.glob(dir),
+                                         pattern=pattern,
+                                         full.names=TRUE)
+
+                out <- c(out, cloudyList)
+
+            }
+
+            return(out)
             
         }
         

@@ -16,4 +16,7 @@ processing system.
 \details{
 Thanks to Fong Chun Chan for help with building/using packages
 https://tinyheero.github.io/jekyll/update/2015/07/26/making-your-first-R-package.html
+
+following method examples from here:
+https://www.cyclismo.org/tutorial/R/s3Classes.html
 }
