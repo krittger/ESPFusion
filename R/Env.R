@@ -23,14 +23,14 @@ Env <- function() {
     ## (this path does not include the version level,
     ## assumes it is 'vXX')
     landsatDir = paste0(topDir,
-                        "/scag/Landsat/UCSB_v3_processing/SSN/")
+                        "/scag/Landsat/UCSB_v3_processing/SSN")
         
     ## path to cloudy Landsat region (e.g. SSN) files
     ## that have been masked for probable clouds
     ## (this path does not include the version level,
     ## assumes it is 'vXX')
     cloudyLandsatDir = paste0(topDir,
-                        "/scag/Landsat/UCSB_v3_processing/SSN_cloudy/")
+                        "/scag/Landsat/UCSB_v3_processing/SSN_cloudy")
         
     ## path to co-located MODIS region (e.g. SSN) files
     ## (this path does not include the version level,
@@ -38,18 +38,14 @@ Env <- function() {
     modisDir = paste0(topDir,
                       "/scag/MODIS/SSN")
         
-    ## path to model regression and classifiers directories
-    modelDir = paste0(topDir,
-                      "/Rdata/forest/twostep/")
+    ## path to model information:
+    ## predictors file lives in this directory
+    ## regression and classifiers directories are here
+    ## processing assumes one more levels down from here with 'modelName'
+    modelDir = paste0(topDir, "/Rdata")
         
-    ## top level output directory, is assumed to contain subdirs:
-    ## regression/, downscaled/, prob.btwn/ and prob.hundred/
-    fusionDir = paste0(topDir,
-                       "/downscaledv3_test")
-        
-    ## file with prepared setup predictor data
-    predictorsFile = paste0(topDir,
-                            "/Rdata/predictors.setup.v0.RData")
+    ## default output path to fusion files
+    fusionDir = paste0(topDir, "/downscaled")
         
     ## default training size
     train.size = 3e+05
@@ -61,6 +57,72 @@ Env <- function() {
         thisEnv = thisEnv,
 
         ## Getters/Setters
+        ## topDir
+        getTopDir = function() {
+
+            return(get("topDir", thisEnv))
+
+        },
+
+        setTopDir = function(value) {
+
+            return(assign("topDir", value, thisEnv))
+
+        },
+
+        ## landsatDir
+        getLandsatDir = function() {
+
+            return(get("landsatDir", thisEnv))
+
+        },
+
+        setLandsatDir = function(value) {
+
+            return(assign("landsatDir", value, thisEnv))
+
+        },
+
+        ## cloudyLandsatDir
+        getCloudyLandsatDir = function() {
+
+            return(get("cloudyLandsatDir", thisEnv))
+
+        },
+
+        setCloudyLandsatDir = function(value) {
+
+            return(assign("cloudLandsatDir", value, thisEnv))
+
+        },
+
+        ## modelDir
+        getModelDir = function() {
+
+            return(get("modelDir", thisEnv))
+
+        },
+
+        setModelDir = function(value) {
+
+            return(assign("modelDir", value, thisEnv))
+
+        },
+
+        ## fusionDir
+        getFusionDir = function() {
+
+            return(get("fusionDir", thisEnv))
+
+        },
+
+        setFusionDir = function(value) {
+
+            return(assign("fusionDir", value, thisEnv))
+
+        },
+
+        ## train.size
         getTrain.size = function() {
 
             return(get("train.size", thisEnv))
@@ -100,6 +162,37 @@ Env <- function() {
             
         },
         
+        parseDateFrom = function(fileName) {
+
+            baseName <- basename(fileName)
+            dateStr <- regmatches(baseName,
+                              regexpr("[0-9]{8}", baseName))
+            if (length(dateStr) == 0) {
+                dateStr <- 'noDate'
+            }
+            return(dateStr)
+            
+        },
+        
+        isPostLeapDay = function(year, doy) {
+
+            ## Return TRUE iff this doy is in a leap year and strictly
+            ## later than the leap day
+            ## This logic only works for dates from 1901 - 2099
+            out <- FALSE
+            leapDoy <- 59
+            if (1900 < year && year < 2100) {
+                if (0 == (year %% 4) && doy > leapDoy) {
+                    out <- TRUE
+                }
+            } else {
+                stop("Year out of expected range")
+            }
+            
+            return(out)
+            
+        },
+        
         allModisFiles = function(varName, version) {
 
             dir <- file.path(get("modisDir", thisEnv),
@@ -126,7 +219,7 @@ Env <- function() {
             
         },
         
-        allLandsatFiles = function(varName, version, includeCloudy=FALSE) {
+        allLandsatFiles = function(varName, version=1, includeCloudy=FALSE) {
 
             dir <- file.path(get("landsatDir", thisEnv),
                              sprintf("v%02d", version))
@@ -155,6 +248,50 @@ Env <- function() {
             }
 
             return(out)
+            
+        },
+        
+        getModelFilenameFor = function(fileType,
+                                       modelName='forest',
+                                       varName='SCA',
+                                       version=3) {
+            ## fileType is one of 'regression' or 'classifier'
+
+            dir <- get("modelDir", thisEnv)
+
+            ## Early versions of these files are in a different
+            ## location
+            ## FIXME:  will we ever want to use the other train.sizes?
+            if (version < 3) {
+                if (identical(fileType, "classifier")) {
+                    out <- file.path(dir, modelName, "twostep", "classification",
+                                     sprintf("ranger.%s.prob3e+05.Rda",
+                                             fileType))
+                } else {
+                    out <- file.path(dir, modelName, "twostep", fileType,
+                                     sprintf("ranger.%s.prob3e+05.Rda",
+                                             fileType))
+                }
+            } else {
+                                 
+                out <- file.path(dir, modelName,
+                                 sprintf("ranger.%s.%s.v%02d.Rda",
+                                         fileType, varName, version))
+            }
+
+            return(out)
+            
+        },
+        
+        getPredictorFilenameFor = function(varName='SCA',
+                                           version=0) {
+
+            dir <- get("modelDir", thisEnv)
+
+            ## build the filename from this location
+            return(file.path(dir, 
+                             sprintf("predictors.%s.v%02d.RData",
+                                     varName, version)))
             
         }
         

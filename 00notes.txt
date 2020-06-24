@@ -9,7 +9,9 @@ Job ID	     Date	Time (wall clock)
 4602811_4080 20110303   04:44:00
 
 All results (downscaled/regression/prob.hundred/prob.btwn .tif
-images) are identical to the ones Will generated.
+images) are identical to the ones Will generated:
+
+/pl/active/SierraBighorn/downscaledv3/downscaled/3e+05.test/
 
 2020-05-26
 
@@ -30,3 +32,16 @@ What's currently in it?
 See notes in
 
 https://nsidc.org/jira/browse/SIER-109
+
+2020-06-24
+
+Have done the planned split described in SIER-109, and changed
+the downscaling interface to take year and dayOfYear to process.
+
+Job ID	     Date	Time (wall clock)
+5364235_23   20050123   05:10:00
+5372524_62   20110303   
+5372524_92   20080401   
+5372524_338  20061204
+
+To check differences with Will's output, use scripts/regression_compare.sh.
