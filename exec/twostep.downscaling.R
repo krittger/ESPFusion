@@ -92,16 +92,18 @@ print(paste0("Processing MODIS file: ", modis.sc.file.name))
 
 ## if working with MODIS v3 or higher, read in at highRes dimensions
 ## and do not resize 
-if (3 > opt$modisVersion) {
+if (3 <= opt$modisVersion) {
 
     ## Note that rows/cols are transposed because R's matrix and raster
     ## packages don't define them the same way
+    print(paste0(Sys.time(), ": reading MODIS file at highRes"))
     MOD.big <- t(matrix(values(raster(modis.sc.file.name)),
                         nc=extent$highResRows,
                         nr=extent$highResCols))
 
 } else {
     
+    print(paste0(Sys.time(), ": reading MODIS file at lowRes and resampling."))
     mod <- t(matrix(values(raster(modis.sc.file.name)),
                     nc=extent$lowResRows,
                     nr=extent$lowResCols))
