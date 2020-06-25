@@ -14,7 +14,7 @@ option_list = list(
                 help="year of data to process [default=%default]",
                 metavar="integer"),
     make_option(c("-d", "--dayOfYear"), type="integer",
-                default=24,
+                default=55,
                 help="day of year to process [default=%default]",
                 metavar="integer"),
     make_option(c("-i", "--modisVersion"), type="integer",
@@ -89,26 +89,35 @@ modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
 modis.yyyymmdd <- myEnv$parseDateFrom(modis.sc.file.name)
 print(paste0("Processing MODIS file: ", modis.sc.file.name))
 
-## Note that rows/cols are transposed because R's matrix and raster
-## packages don't define them the same way
-mod <- t(matrix(values(raster(modis.sc.file.name)),
-                nc=extent$lowResRows,
-                nr=extent$lowResCols))
 
-## format MODIS into a matrix the size of the final downscaled images
-## FIXME: move the hardcoded factor of 16 that relates HiRes to LowRes
-## to the StudyExtent class
-##
-## FIXME: if working with MODIS v3 or higher, this step won't be necessary?
-##
-MOD.big <- array(dim=c(extent$highResRows, extent$highResCols)) 
-for(k in 1:dim(mod)[1]){
-    for(ell in 1:dim(mod)[2]){
-        MOD.big[(16*k-15):(16*k),(16*ell-15):(16*ell)] <- mod[k,ell]
+## if working with MODIS v3 or higher, read in at highRes dimensions
+## and do not resize 
+if (3 > opt$modisVersion) {
+
+    ## Note that rows/cols are transposed because R's matrix and raster
+    ## packages don't define them the same way
+    MOD.big <- t(matrix(values(raster(modis.sc.file.name)),
+                        nc=extent$highResRows,
+                        nr=extent$highResCols))
+
+} else {
+    
+    mod <- t(matrix(values(raster(modis.sc.file.name)),
+                    nc=extent$lowResRows,
+                    nr=extent$lowResCols))
+
+    ## format MODIS into a matrix the size of the final downscaled images
+    MOD.big <- array(dim=c(extent$highResRows, extent$highResCols)) 
+    for(k in 1:dim(mod)[1]){
+        for(ell in 1:dim(mod)[2]){
+            MOD.big[(16*k-15):(16*k),(16*ell-15):(16*ell)] <- mod[k,ell]
+        }
     }
+    rm(mod)
+
 }
 	
-MOD.big <- MOD.big[-theseNA]
+daydat$mod <- MOD.big[-theseNA]
 
 ## The model is only defined for 365 days of year, so
 ## for days in leap years after the leap day, subtract 1 day
@@ -116,8 +125,8 @@ daydat$da <- opt$dayOfYear
 if (myEnv$isPostLeapDay(opt$year, opt$dayOfYear)) {
     daydat$da <- daydat$da - 1
 }
-daydat$mod <- MOD.big
-rm(MOD.big, mod)
+
+rm(MOD.big)
 gc()
 
 print(sprintf("Using model information for year=%d, (model) doy=%d",

@@ -40,8 +40,10 @@ the downscaling interface to take year and dayOfYear to process.
 
 Job ID	     Date	Time (wall clock)
 5364235_23   20050123   05:10:00
-5372524_62   20110303   
-5372524_92   20080401   
-5372524_338  20061204
+5372524_62   20110303   05:00:00
+5372524_92   20080401   05:30:00
+5372524_338  20061204   05:15:00
 
 To check differences with Will's output, use scripts/regression_compare.sh.
+
+These runs are also identical to Will's output.

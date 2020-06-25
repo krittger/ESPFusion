@@ -78,6 +78,13 @@ test_that("Env returns expected list of v01 clear+cloudy Landsat filenames", {
     
 })
 
+test_that("Env returns error for unknown fileType", {
+
+    myEnv <- Env()
+    expect_error(myEnv$getModelFilenameFor("BOGUSregression", version=2))
+
+})
+
 test_that("Env returns expected old model filenames", {
 
     myEnv <- Env()
