@@ -11,7 +11,7 @@
 #SBATCH --job-name=run.twostep.downscaling.summit
 #SBATCH --mail-type=END,FAIL,REQUEUE,STAGE_OUT
 #SBATCH --mail-user=brodzik@nsidc.org
-#SBATCH --array=338,92,62
+#SBATCH --array=23,338,92,62
 
 # Original array indices (for regression tests):
 # 1850: 20050123:  23
