@@ -255,7 +255,11 @@ Env <- function() {
                                        modelName='forest',
                                        varName='SCA',
                                        version=3) {
-            ## fileType is one of 'regression' or 'classifier'
+
+            validFileTypes <- c("regression", "classifier")
+            if ( !(fileType %in% validFileTypes) ) {
+                stop(sprintf("Unrecognized fileType=%s", fileType))
+            }
 
             dir <- get("modelDir", thisEnv)
 
