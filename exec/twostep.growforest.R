@@ -1,55 +1,42 @@
 #specify the number of points to be randomly sampled from the good indices each day. 
-train.size <- 3e5
 
 
 library(fields)
 library(raster)
 library(ranger)
 
+myEnv <- Env()
+SSN <- StudyExtent("SouthernSierraNevada")
+
 
 ## List data files and set up region bounds
-### modis.path needs to be updated to include v02 *and* use all years within .../v02/year#/
-modis.path <- "/pl/active/SierraBighorn/scag/MODIS/SSN/v03/"
-### these are hardcoded and probably shouldn't be
+
 clear.landsat.path <- "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN/v01/"
 cloudy.landsat.path <- "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN_cloudy/v01/"
 Rdata_path <- "/pl/active/SierraBighorn/Rdata/"
-### through here
 
-### note that this uses only a single modis path here, so with new directory structure needs to be changed
-modis.file.names <- list.files(modis.path,recursive = TRUE)
+modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent",version=3)
 
-#### file names does not have viewable in v02
-modis.sc.file.names <- modis.file.names[!grepl("viewable",modis.file.names)]
-### through here
+clear.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask",version=1,includeCloudy=FALSE)
+clear.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent",version=1,includeCloudy=FALSE)
 
-clear.landsat.file.names <- list.files(clear.landsat.path)
-clear.sat.mask.file.names <- clear.landsat.file.names[grepl("saturation_mask",clear.landsat.file.names)]
-clear.landsat.sc.file.names <- clear.landsat.file.names[grepl("snow_cover",clear.landsat.file.names)]
-clear.landsat.sc.file.names <- clear.landsat.sc.file.names[!grepl("viewable",clear.landsat.sc.file.names)]
-
-
-cloudy.landsat.file.names <- list.files(cloudy.landsat.path)
-cloudy.landsat.file.names <- cloudy.landsat.file.names[grepl("ProbCM",cloudy.landsat.file.names)]
-cloudy.sat.mask.file.names <- cloudy.landsat.file.names[grepl("saturation_mask",cloudy.landsat.file.names)]
-
-cloudy.landsat.sc.file.names <- cloudy.landsat.file.names[grepl("snow_cover",cloudy.landsat.file.names)]
-cloudy.landsat.sc.file.names <- cloudy.landsat.sc.file.names[!grepl("viewable",cloudy.landsat.sc.file.names)]
+cloudy.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask.ProbCM",version=1,includeCloudy=TRUE)
+cloudy.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent.ProbCM",version=1,includeCloudy=TRUE)
 
 landsat.sc.file.names <- c(clear.landsat.sc.file.names,cloudy.landsat.sc.file.names)
 sat.mask.file.names <- c(clear.sat.mask.file.names,cloudy.sat.mask.file.names)
 
-rm(clear.landsat.file.names, cloudy.landsat.file.names, cloudy.sat.mask.file.names,clear.sat.mask.file.names, modis.file.names)
+rm(cloudy.sat.mask.file.names,clear.sat.mask.file.names)
 
 ## Get dates
 ### CHECK: make sure the substr on the new modis.sc.file.names actually grabs yyyymmdd
 ####changed start and end to reflect date position
 mod.date <- lst.date <- cloudy.lst.date <- NULL
 for(i in 1:length(modis.sc.file.names)){
-	mod.date[i] <- regmatches(modis.sc.file.names[i], regexpr("\\d{4}\\d{2}\\d{2}",modis.sc.file.names[i]))
+	mod.date[i] <- regmatches(modis.sc.file.names[i], regexpr("\\d{8}",modis.sc.file.names[i]))
 	}
 for(i in 1:length(landsat.sc.file.names)){
-	lst.date[i] <- regmatches(landsat.sc.file.names[i], regexpr("\\d{4}\\d{2}\\d{2}",landsat.sc.file.names[i]))
+	lst.date[i] <- regmatches(landsat.sc.file.names[i], regexpr("\\d{8}",landsat.sc.file.names[i]))
 	}
 
 mod.date <- as.integer(mod.date)
@@ -80,9 +67,6 @@ sat.mask.file.names <- sat.mask.file.names[out]
 lst.date <- lst.date[out]
 rm(out)
 
-cloudy.days <- grepl("ProbCM",landsat.sc.file.names)
-
-
 ## Not necessary after censoring only dates on which both LST and MOD are available
 ## Remove leap days
 #these <- which(format(mod.date,"%m%d")=="0229")
@@ -111,63 +95,63 @@ nday <- length(mod.da)
 ##
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Elevation.tif")
-elev <- t(matrix(values(out),nc=14752,nr=9712))
+elev <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 elev[elev < (-100)] <- NA
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Slope.tif")
-slope <- t(matrix(values(out),nc=14752,nr=9712))
+slope <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 slope[slope < 0] <- NA
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Aspect.tif")
-asp <- t(matrix(values(out),nc=14752,nr=9712))
+asp <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 asp[asp < (-2)] <- NA
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_LandClassNLCD.tif")
-lty <- t(matrix(values(out),nc=14752,nr=9712))
+lty <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/landcover/LandFireEVH_ucsb/SSN.LandFireEVH_SN30m_height_m.v01.tif")
-forest.height <- t(matrix(values(out),nc=14752,nr=9712))
+forest.height <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_NorthWestBarrierDistance.tif")
-nw.barrierdist <- t(matrix(values(out),nc=14752,nr=9712))
+nw.barrierdist <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_SouthWestBarrierDistance.tif")
-sw.barrierdist <- t(matrix(values(out),nc=14752,nr=9712))
+sw.barrierdist <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_WestBarrierDistance.tif")
-w.barrierdist <- t(matrix(values(out),nc=14752,nr=9712))
+w.barrierdist <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_SouthWestDistanceToWater.tif")
-sw.waterdist <- t(matrix(values(out),nc=14752,nr=9712))
+sw.waterdist <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_WestDistanceToWater.tif")
-w.waterdist <- t(matrix(values(out),nc=14752,nr=9712))
+w.waterdist <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/downscaled_s_sierra_winds_dec_april_climatology_nldas2.tif")
-windspeed <- t(matrix(values(out),nc=14752,nr=9712))
+windspeed <- t(matrix(values(out),nc=SSN$highResRows,nr=SSN$highResCols))
 rm(out)
 
 
-locs <- expand.grid(x=1:9712,y=1:14752) #expand.grid(x=seq(from=129187.3,by=30,length.out= 9712), y=seq(from=3918807,by=30,length.out= 14752))
-locs.x <-  t(matrix(locs[,1],nc= 14752,nr= 9712))
-locs.y <-  t(matrix(locs[,2],nc= 14752,nr= 9712))
-locs <- cbind(c(locs.x),rev(locs.y))/14752
+locs <- expand.grid(x=1:SSN$highResCols,y=1:SSN$highResRows) #expand.grid(x=seq(from=129187.3,by=30,length.out= SSN$highResCols), y=seq(from=3918807,by=30,length.out= SSN$highResRows))
+locs.x <-  t(matrix(locs[,1],nc= SSN$highResRows,nr= SSN$highResCols))
+locs.y <-  t(matrix(locs[,2],nc= SSN$highResRows,nr= SSN$highResCols))
+locs <- cbind(c(locs.x),rev(locs.y))/SSN$highResRows
 
 
-smalllocs <- expand.grid(x=1:607,y=1:922) #expand.grid(x=seq(from=129187.3,to= 420517.3,length.out= 607), y=seq(from=3918807,to= 4361337,length.out= 922))
-smalllocs.x <-  t(matrix(smalllocs[,1],nc= 922,nr= 607))
-smalllocs.y <-  t(matrix(smalllocs[,2],nc= 922,nr= 607))
-smalllocs <- cbind(c(smalllocs.x),rev(smalllocs.y))/922
+smalllocs <- expand.grid(x=1:SSN$lowResCols,y=1:SSN$lowResRows) #expand.grid(x=seq(from=129187.3,to= 420517.3,length.out= SSN$lowResCols), y=seq(from=3918807,to= 4361337,length.out= SSN$lowResRows))
+smalllocs.x <-  t(matrix(smalllocs[,1],nc= SSN$lowResRows,nr= SSN$lowResCols))
+smalllocs.y <-  t(matrix(smalllocs[,2],nc= SSN$lowResRows,nr= SSN$lowResCols))
+smalllocs <- cbind(c(smalllocs.x),rev(smalllocs.y))/SSN$lowResRows
 
 #plot with quilt.plot(locs,c(elev))
 
@@ -196,29 +180,21 @@ feature.NA <- which(is.na(elev))
 
 for(day in 1:nday){ 
 	
-
-	
-	if(cloudy.days[day]) {
-		landsat.path <- cloudy.landsat.path
-	} else {
-		landsat.path <- clear.landsat.path
-	}
-	
-	LST  <- t(matrix(values(raster(paste0(landsat.path,landsat.sc.file.names[day]))),nc= 14752,nr= 9712))
+	LST  <- t(matrix(values(raster(landsat.sc.file.names[day])),nc= SSN$highResRows,nr= SSN$highResCols))
 	LST.NA <- which(LST==255)
 	
-	sat.mask <- t(matrix(values(raster(paste0(landsat.path,sat.mask.file.names[day]))),nc= 14752,nr= 9712))
+	sat.mask <- t(matrix(values(raster(sat.mask.file.names[day])),nc= SSN$highResRows,nr= SSN$highResCols))
 	LST.sat <- which(sat.mask==1)
 	rm(sat.mask)
 	
-	these.good.day <- (1:(14752*9712))[-c(LST.sat,LST.NA,feature.NA)]
-	train.indices.day <- sample(these.good.day,train.size)
+	these.good.day <- (1:(SSN$highResRows*SSN$highResCols))[-c(LST.sat,LST.NA,feature.NA)]
+	train.indices.day <- sample(these.good.day,myEnv$getTrain.size())
 	
 	train.LST[[day]] <- LST[train.indices.day]
 	rm(LST)
 ### might need to be careful here since this only calls a single modis.path	
 ####added year inside path
-	MOD.big <- t(matrix(values(raster(paste0(modis.path, modis.sc.file.names[day]))),nc=14752,nr=9712))
+	MOD.big <- t(matrix(values(raster(modis.sc.file.names[day])),nc=SSN$highResRows,nr=SSN$highResCols))
 ###
 
   train.MOD[[day]] <- MOD.big[train.indices.day]
@@ -296,7 +272,7 @@ ranger.classifier$prediction.error
 
 ### Need to change the filename to reflect v02
 print(Sys.time())
-save(ranger.classifier,file=paste0(Rdata_path,"forest/ranger.classifier.SCA.v03",as.character(train.size),".Rda"))
+save(ranger.classifier,file=myEnv$getModelFilenameFor("classifier",version=3))
 print(Sys.time())
 rm(ranger.classifier)
 ###
@@ -315,7 +291,7 @@ print(object.size(ranger.regression),units="GB")
 ranger.regression$prediction.error
 
 ### same thing: need to change filename to reflect v02
-save(ranger.regression,file=paste0(Rdata_path,"/forest/ranger.regression.SCA.v03",as.character(train.size),".Rda"))
+save(ranger.regression,file=file=myEnv$getModelFilenameFor("regression",version=3))
 ###
 
 
