@@ -132,13 +132,13 @@ windspeed <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$high
 rm(out)
 
 
-locs <- expand.grid(x=1:studyExtent$highResCols,y=1:studyExtent$highResRows) #expand.grid(x=seq(from=129187.3,by=30,length.out= studyExtent$highResCols), y=seq(from=3918807,by=30,length.out= studyExtent$highResRows))
+locs <- expand.grid(x=1:studyExtent$highResCols,y=1:studyExtent$highResRows) 
 locs.x <-  t(matrix(locs[,1],nc= studyExtent$highResRows,nr= studyExtent$highResCols))
 locs.y <-  t(matrix(locs[,2],nc= studyExtent$highResRows,nr= studyExtent$highResCols))
 locs <- cbind(c(locs.x),rev(locs.y))/studyExtent$highResRows
 
 
-smalllocs <- expand.grid(x=1:studyExtent$lowResCols,y=1:studyExtent$lowResRows) #expand.grid(x=seq(from=129187.3,to= 420517.3,length.out= studyExtent$lowResCols), y=seq(from=3918807,to= 4361337,length.out= studyExtent$lowResRows))
+smalllocs <- expand.grid(x=1:studyExtent$lowResCols,y=1:studyExtent$lowResRows) 
 smalllocs.x <-  t(matrix(smalllocs[,1],nc= studyExtent$lowResRows,nr= studyExtent$lowResCols))
 smalllocs.y <-  t(matrix(smalllocs[,2],nc= studyExtent$lowResRows,nr= studyExtent$lowResCols))
 smalllocs <- cbind(c(smalllocs.x),rev(smalllocs.y))/studyExtent$lowResRows
