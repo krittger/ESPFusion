@@ -206,6 +206,8 @@ for(day in 1:nday){
 	print(paste0("Day ", day, " of ", nday, ", ", length(train.indices.day), " training indices from ", length(these.good.day), " possible"))
 }
 
+train.da.nNA <- unlist(lapply(train.LST,length))
+
 #training data fully constructed here
 train.dat <- data.frame(lst=unlist(train.LST),
 	da=rep(mod.da,times=train.da.nNA),
