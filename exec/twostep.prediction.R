@@ -8,33 +8,31 @@ studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 
 
 ## List data files and set up region bounds
-modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent",version=3)
-Rdata_path <- "/pl/active/SierraBighorn/Rdata/forest"
+modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent", version=3)
 
+clear.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask", version=1, includeCloudy=FALSE)
+clear.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent", version=1, includeCloudy=FALSE)
 
-clear.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask",version=1,includeCloudy=FALSE)
-clear.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent",version=1,includeCloudy=FALSE)
+cloudy.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask.ProbCM", version=1, includeCloudy=TRUE)
+cloudy.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent.ProbCM", version=1, includeCloudy=TRUE)
 
-cloudy.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask.ProbCM",version=1,includeCloudy=TRUE)
-cloudy.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent.ProbCM",version=1,includeCloudy=TRUE)
+landsat.sc.file.names <- c(clear.landsat.sc.file.names, cloudy.landsat.sc.file.names)
+sat.mask.file.names <- c(clear.sat.mask.file.names, cloudy.sat.mask.file.names)
 
-landsat.sc.file.names <- c(clear.landsat.sc.file.names,cloudy.landsat.sc.file.names)
-sat.mask.file.names <- c(clear.sat.mask.file.names,cloudy.sat.mask.file.names)
-
-rm(cloudy.sat.mask.file.names,clear.sat.mask.file.names)
+rm(cloudy.sat.mask.file.names, clear.sat.mask.file.names)
 
 ## Get dates
 mod.date <- lst.date <- cloudy.lst.date <- NULL
 for(i in 1:length(modis.sc.file.names)){
-  mod.date[i] <- regmatches(modis.sc.file.names[i], regexpr("\\d{8}",modis.sc.file.names[i]))
+    mod.date[i] <- regmatches(modis.sc.file.names[i], regexpr("\\d{8}", modis.sc.file.names[i]))
 }
 for(i in 1:length(landsat.sc.file.names)){
-  lst.date[i] <- regmatches(landsat.sc.file.names[i], regexpr("\\d{8}",landsat.sc.file.names[i]))
+    lst.date[i] <- regmatches(landsat.sc.file.names[i], regexpr("\\d{8}", landsat.sc.file.names[i]))
 }
 
 mod.date <- as.integer(mod.date)
 lst.date <- as.integer(lst.date)
-sort.indices <- sort(lst.date,index.return=TRUE)
+sort.indices <- sort(lst.date, index.return=TRUE)
 
 
 landsat.sc.file.names <- landsat.sc.file.names[sort.indices$ix]
@@ -45,8 +43,8 @@ lst.date <- lst.date[sort.indices$ix]
 ## Set up day of year variables and remove leap days
 ##
 
-mod.date <- strptime(x=as.character(mod.date),format="%Y%m%d")
-lst.date <- strptime(x=as.character(lst.date),format="%Y%m%d")
+mod.date <- strptime(x=as.character(mod.date), format="%Y%m%d")
+lst.date <- strptime(x=as.character(lst.date), format="%Y%m%d")
 
 out <- format(mod.date,"%Y%m%d") %in% format(lst.date,"%Y%m%d")
 modis.sc.file.names <- modis.sc.file.names[out]
@@ -164,8 +162,8 @@ w.waterdist <- w.waterdist/1000
 # Classification and regression forests loaded
 
 print(Sys.time())
-load(paste0(Rdata_path,"ranger.classifier.SCA.v03.Rda"))
-load(paste0(Rdata_path,"ranger.regression.SCA.v03.Rda"))
+load(myEnv$getModelFilenameFor("regression"))
+load(myEnv$getModelFilenameFor("classifier"))
 print(Sys.time())
 
 
@@ -214,67 +212,68 @@ rm(slope, asp, elev, lty, lon, lat, forest.height, nw.barrierdist, sw.barrierdis
 
 
 for(day in 1:nday){ 
-	print(paste0("Starting ",mod.date[day]," at ",Sys.time()))
-	
-  MOD.big <- t(matrix(values(raster(modis.sc.file.names[day])),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
+  	print(paste0("Starting ",mod.date[day]," at ",Sys.time()))
+  	
+    MOD.big <- t(matrix(values(raster(modis.sc.file.names[day])),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
+    
+  	
+    MOD.big <- MOD.big[-theseNA]
+    
+    daydat$da <- mod.da[day]
+    daydat$mod <- MOD.big
+    rm(MOD.big)
   
-	
-  MOD.big <- MOD.big[-theseNA]
+    
+    print(paste("starting classification",Sys.time()))
+    for(s in 1:(length(splits)-1))
+    {     these <- splits[s]:splits[s+1]
+    	    ranger.temp <- predict(ranger.classifier,data=daydat[these,],num.threads=128)
+    	    class.predictions <- colnames(ranger.temp$predictions)[max.col(ranger.temp$predictions,"first")]
+    	    classes[these][class.predictions == "zero"] <- as.integer(0)
+    	    classes[these][class.predictions == "btwn"] <- as.integer(1)
+    	    classes[these][class.predictions == "hundred"] <- as.integer(2)
+    	    
+    	    prob.btwn[these] <- as.integer(round(100*ranger.temp$predictions[,1]))
+    	    prob.hundred[these] <- as.integer(round(100*ranger.temp$predictions[,2]))
+    }   
+    print(paste("classification done",Sys.time()))
+    rm(these,ranger.temp,class.predictions)
   
-  daydat$da <- mod.da[day]
-  daydat$mod <- MOD.big
-  rm(MOD.big)
-
+    	  
+    print(paste("starting regression",Sys.time()))
+    for(s in 1:(length(splits)-1))
+    {     these <- splits[s]:splits[s+1]
+    	    ranger.temp <- predict(ranger.regression,data=daydat[these,],num.threads=128)
+    	    regressionvalues[these] <- ranger.temp$predictions
+     }   
+    print(paste("regression done",Sys.time()))
+    rm(these,ranger.temp)
+    	    	     	    
+    	    	     	    
+    print(paste("Saving rasters",Sys.time())) 
+  	downscaled[-theseNA] <- as.integer(round(regressionvalues)) 	    
+  	pred.rast <- raster(landsat.sc.file.names[day])
+  	values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
+    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/regression/",as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
   
-  print(paste("starting classification",Sys.time()))
-  for(s in 1:(length(splits)-1))
-  {     these <- splits[s]:splits[s+1]
-  	    ranger.temp <- predict(ranger.classifier,data=daydat[these,],num.threads=128)
-  	    class.predictions <- colnames(ranger.temp$predictions)[max.col(ranger.temp$predictions,"first")]
-  	    classes[these][class.predictions == "zero"] <- as.integer(0)
-  	    classes[these][class.predictions == "btwn"] <- as.integer(1)
-  	    classes[these][class.predictions == "hundred"] <- as.integer(2)
-  	    
-  	    prob.btwn[these] <- as.integer(round(100*ranger.temp$predictions[,1]))
-  	    prob.hundred[these] <- as.integer(round(100*ranger.temp$predictions[,2]))
-  }   
-  print(paste("classification done",Sys.time()))
-  rm(these,ranger.temp,class.predictions)
-
-  	  
-  print(paste("starting regression",Sys.time()))
-  for(s in 1:(length(splits)-1))
-  {     these <- splits[s]:splits[s+1]
-  	    ranger.temp <- predict(ranger.regression,data=daydat[these,],num.threads=128)
-  	    regressionvalues[these] <- ranger.temp$predictions
-   }   
-  print(paste("regression done",Sys.time()))
-  rm(these,ranger.temp)
-  	    	     	    
-  	    	     	    
-  print(paste("Saving rasters",Sys.time())) 
-	downscaled[-theseNA] <- as.integer(round(regressionvalues)) 	    
-	pred.rast <- raster(paste0(landsat.path,landsat.sc.file.names[day])) 
-	values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-  writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/regression/",as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
-
-  	  
-  downscaled[-theseNA][classes == 0] <- as.integer(0)
-  downscaled[-theseNA][classes == 2] <- as.integer(100)
-  values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-  writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/downscaled/",as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
-  	   
-
-  downscaled[-theseNA] <- prob.btwn
-  values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-  writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/prob.btwn/",as.character(train.size), "/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
-
-  downscaled[-theseNA] <- prob.hundred
-  values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols))) 	     	  
-  writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/prob.hundred/", as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
-
-  print(paste("All rasters assigned",Sys.time())) 
-  	   	  
-  rm(pred.rast,predict.ranger)   	
-	
+    	  
+    downscaled[-theseNA][classes == 0] <- as.integer(0)
+    downscaled[-theseNA][classes == 2] <- as.integer(100)
+    values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
+    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/downscaled/",as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+    	   
+  
+    downscaled[-theseNA] <- prob.btwn
+    values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
+    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/prob.btwn/",as.character(train.size), "/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+  
+    downscaled[-theseNA] <- prob.hundred
+    values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols))) 	     	  
+    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/prob.hundred/", as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+  
+    print(paste("All rasters assigned",Sys.time())) 
+    	   	  
+    rm(pred.rast)
+    
 }
+
