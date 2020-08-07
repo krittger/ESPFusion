@@ -120,6 +120,48 @@ test_that("Env returns expected model filenames", {
     
 })
 
+test_that("Env returns expected downscaled filenames", {
+
+    myEnv <- Env()
+    dir <- "/test/out"
+
+    ## Error case
+    expect_error(myEnv$getDownscaledFilenameFor(dir,
+                                                "bogus",
+                                                "SSN",
+                                                "20010328"))
+
+    ## Legit cases
+    outFile <- myEnv$getDownscaledFilenameFor(dir,
+                                              "regression",
+                                              "SSN",
+                                              "20010328")
+    expect_equal(outFile,
+                 paste0(dir, "/SSN.downscaled.regression.20010328.v3.3e+05.tif"))
+
+    outFile <- myEnv$getDownscaledFilenameFor(dir,
+                                              "downscaled",
+                                              "SSN",
+                                              "20010328")
+    expect_equal(outFile,
+                 paste0(dir, "/SSN.downscaled.20010328.v3.3e+05.tif"))
+
+    outFile <- myEnv$getDownscaledFilenameFor(dir,
+                                              "prob.btwn",
+                                              "SSN",
+                                              "20010328")
+    expect_equal(outFile,
+                 paste0(dir, "/SSN.downscaled.prob.0.100.20010328.v3.3e+05.tif"))
+
+    outFile <- myEnv$getDownscaledFilenameFor(dir,
+                                              "prob.hundred",
+                                              "SSN",
+                                              "20010328")
+    expect_equal(outFile,
+                 paste0(dir, "/SSN.downscaled.prob.100.20010328.v3.3e+05.tif"))
+
+})
+
 test_that("Env getters are working", {
 
     myEnv <- Env()

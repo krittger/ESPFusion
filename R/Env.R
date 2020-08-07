@@ -297,6 +297,55 @@ Env <- function() {
                              sprintf("predictors.%s.v%02d.RData",
                                      varName, version)))
             
+        },
+        
+        getDownscaledFilenameFor = function(dir,
+                                            fileType,
+                                            extentShortName,
+                                            yyyymmddStr,
+                                            version=3) {
+
+            validFileTypes <- c("regression",
+                                "downscaled",
+                                "prob.btwn",
+                                "prob.hundred")
+            if ( !(fileType %in% validFileTypes) ) {
+                stop(sprintf("Unrecognized fileType=%s", fileType))
+            }
+
+            if (identical(fileType, "regression")) {
+                out <- file.path(dir,
+                                 sprintf("%s.downscaled.regression.%s.v%d.%s.tif",
+                                         extentShortName,
+                                         yyyymmddStr,
+                                         version,
+                                         as.character(get("train.size", thisEnv))))
+            } else if (identical(fileType, "downscaled")) {
+                out <- file.path(dir,
+                                 sprintf("%s.downscaled.%s.v%d.%s.tif",
+                                         extentShortName,
+                                         yyyymmddStr,
+                                         version,
+                                         as.character(get("train.size", thisEnv))))
+            } else if (identical(fileType, "prob.btwn")) {
+                out <- file.path(dir,
+                                 sprintf("%s.downscaled.prob.0.100.%s.v%d.%s.tif",
+                                         extentShortName,
+                                         yyyymmddStr,
+                                         version,
+                                         as.character(get("train.size", thisEnv))))
+            } else {
+                ## fileType == prob.hundred
+                out <- file.path(dir,
+                                 sprintf("%s.downscaled.prob.100.%s.v%d.%s.tif",
+                                         extentShortName,
+                                         yyyymmddStr,
+                                         version,
+                                         as.character(get("train.size", thisEnv))))
+            }
+
+            return(out)
+            
         }
         
     )

@@ -47,3 +47,29 @@ Job ID	     Date	Time (wall clock)
 To check differences with Will's output, use scripts/regression_compare.sh.
 
 These runs are also identical to Will's output.
+
+2020-06-25
+
+Added switch to read old MODIS data and resample, but to read new
+MODIS data at high Res.  Retested regression days at old
+resolution, output are identical.
+
+Job ID	     Date	Time (wall clock)
+5394640_23   20050123   04:50:00
+5394640_62   20110303   05:20:00
+5394640_92   20080401   05:20:00
+5394640_338  20061204   05:15:00
+
+2020-07-21
+
+Added -f switch to not clobber prior output, unless -f switch is
+TRUE
+Retested regression days at old resolution, output are identical.
+
+Job ID	     Date	Time (wall clock)
+5554205_23   20050123
+5554205_62   20110303
+5554205_92   20080401
+5554205_338  20061204
+
+Output are identical.
