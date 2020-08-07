@@ -29,6 +29,10 @@ option_list = list(
                 default=50,
                 help="number of trees in regression forest [default=%default]",
                 metavar="integer"),
+    make_option(c("-f", "--forceOverwrite"), type="logical",
+                default=FALSE,
+                help="force output files to overwrite any previous outputs [default=%default]",
+                metavar="logical"),
     make_option(c("-o", "--outDir"), type="character",
                 default=myEnv$getFusionDir(),
                 help=paste0("top-level output directory\n",
@@ -74,13 +78,6 @@ landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent")
 pred.rast <- raster(landsat.sc.file.names[1])
 
 ##
-## FIXME: Do this before running on preemptable blanca queue:
-## if all output files already exist for this date, don't repeat
-## processing.  We should add a command-line argument to override this
-## behavior to force processing even if files exist
-##
-
-##
 ## Find the modis file to process
 ##
 modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
@@ -89,6 +86,49 @@ modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
 modis.yyyymmdd <- myEnv$parseDateFrom(modis.sc.file.name)
 print(paste0("Processing MODIS file: ", modis.sc.file.name))
 
+##
+## If all expected output files already exist for this date, don't repeat
+## processing.  We should add a command-line argument to override this
+## behavior to force processing even if files exist
+##
+outRegressionFile <-
+    myEnv$getDownscaledFilenameFor(outDirs$regression,
+                                   "regression",
+                                   extent$shortName,
+                                   modis.yyyymmdd)
+outDownscaledFile <-
+    myEnv$getDownscaledFilenameFor(outDirs$downscaled,
+                                   "downscaled",
+                                   extent$shortName,
+                                   modis.yyyymmdd)
+
+outProbBtwnFile <-
+    myEnv$getDownscaledFilenameFor(outDirs$prob.btwn,
+                                   "prob.btwn",
+                                   extent$shortName,
+                                   modis.yyyymmdd)
+
+outProbHundredFile <-
+    myEnv$getDownscaledFilenameFor(outDirs$prob.hundred,
+                                   "prob.hundred",
+                                   extent$shortName,
+                                   modis.yyyymmdd)
+
+if (!opt$forceOverwrite) {
+    if (file.exists(outRegressionFile)
+        && file.exists(outDownscaledFile)
+        && file.exists(outProbBtwnFile)
+        && file.exists(outProbHundredFile)) {
+
+        print(
+            sprintf(
+                "%s: Skipping downscaling for %s, output files already exist.\n",
+                Sys.time(), modis.yyyymmdd))
+        quit(status=0)
+    }
+} else {
+    print(sprintf("%s: forceOverwrite=TRUE for %s\n", Sys.time(), modis.yyyymmdd))
+}
 
 ## if working with MODIS v3 or higher, read in at highRes dimensions
 ## and do not resize 
@@ -212,17 +252,13 @@ downscaled[-theseNA] <- as.integer(round(regressionvalues))
 values(pred.rast) <- c(t(matrix(downscaled,
                                 nr=extent$highResRows,
                                 nc=extent$highResCols)))
-outFile <- file.path(outDirs$regression,
-                     sprintf("SSN.downscaled.regression.%s.v3.%s.tif",
-                             modis.yyyymmdd,
-                             as.character(myEnv$getTrain.size())))
 writeRaster(pred.rast,
-            filename=outFile,
+            filename=outRegressionFile,
             format="GTiff",
             option="COMPRESS=LZW",
             datatype="INT1U",
             overwrite=TRUE)
-print(paste(Sys.time(), ": regression saved to: ", outFile))
+print(paste(Sys.time(), ": regression saved to: ", outRegressionFile))
 
 # fully downscaled image
 downscaled[-theseNA][classes == 0] <- as.integer(0)
@@ -230,51 +266,39 @@ downscaled[-theseNA][classes == 2] <- as.integer(100)
 values(pred.rast) <- c(t(matrix(downscaled,
                                 nr=extent$highResRows,
                                 nc=extent$highResCols)))
-outFile <- file.path(outDirs$downscaled,
-                     sprintf("SSN.downscaled.%s.v3.%s.tif",
-                             modis.yyyymmdd,
-                             as.character(myEnv$getTrain.size())))
 writeRaster(pred.rast,
-            filename=outFile,
+            filename=outDownscaledFile,
             format="GTiff",
             option="COMPRESS=LZW",
             datatype="INT1U",
             overwrite=TRUE)
-print(paste(Sys.time(), ": full downscaled saved to: ", outFile))
+print(paste(Sys.time(), ": full downscaled saved to: ", outDownscaledFile))
 
 # probabilities of (0,100)
 downscaled[-theseNA] <- prob.btwn
 values(pred.rast) <- c(t(matrix(downscaled,
                                 nr=extent$highResRows,
                                 nc=extent$highResCols)))
-outFile <- file.path(outDirs$prob.btwn,
-                     sprintf("SSN.downscaled.prob.0.100.%s.v3.%s.tif",
-                             modis.yyyymmdd,
-                             as.character(myEnv$getTrain.size())))
 writeRaster(pred.rast,
-            filename=outFile,
+            filename=outProbBtwnFile,
             format="GTiff",
             option="COMPRESS=LZW",
             datatype="INT1U",
             overwrite=TRUE)
-print(paste(Sys.time(), ": prob of (0,100) saved to:", outFile))
+print(paste(Sys.time(), ": prob of (0,100) saved to:", outProbBtwnFile))
 
 # probabilities of 100% [we can get P(0) = 1 - P(100) - P((0,100))]
 downscaled[-theseNA] <- prob.hundred
 values(pred.rast) <- c(t(matrix(downscaled,
                                 nr=extent$highResRows,
                                 nc=extent$highResCols)))
-outFile <- file.path(outDirs$prob.hundred,
-                     sprintf("SSN.downscaled.prob.100.%s.v3.%s.tif",
-                             modis.yyyymmdd,
-                             as.character(myEnv$getTrain.size())))
 writeRaster(pred.rast,
-            filename=outFile,
+            filename=outProbHundredFile,
             format="GTiff",
             option="COMPRESS=LZW",
             datatype="INT1U",
             overwrite=TRUE)
-print(paste(Sys.time(), ": prob of 100 saved to:", outFile))
+print(paste(Sys.time(), ": prob of 100 saved to:", outProbHundredFile))
 
 quit(status=0)
 

@@ -69,6 +69,7 @@ esac
 echo "${PROGNAME}: Processing year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
 Rscript --no-save --no-restore ../exec/twostep.downscaling.R \
 --year=${year} --dayOfYear=${SLURM_ARRAY_TASK_ID} \
+--forceOverwrite=TRUE \
 --outDir=/pl/active/SierraBighorn/downscaledv3_test	
 
 echo "${PROGNAME}: Done, status= $?"
