@@ -254,22 +254,21 @@ for(day in 1:nday){
   	downscaled[-theseNA] <- as.integer(round(regressionvalues)) 	    
   	pred.rast <- raster(landsat.sc.file.names[day])
   	values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/regression/",as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
-  
+    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/regression/",as.character(myEnv$getTrain.size()),"/SSN.downscaled.regression.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
     	  
     downscaled[-theseNA][classes == 0] <- as.integer(0)
     downscaled[-theseNA][classes == 2] <- as.integer(100)
     values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/downscaled/",as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/downscaled/",as.character(myEnv$getTrain.size()),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
     	   
   
     downscaled[-theseNA] <- prob.btwn
     values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/prob.btwn/",as.character(train.size), "/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/prob.btwn/",as.character(myEnv$getTrain.size()), "/SSN.downscaled.prob.0.100.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
   
     downscaled[-theseNA] <- prob.hundred
     values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols))) 	     	  
-    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv3/prob.hundred/", as.character(train.size),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/prob.hundred/", as.character(myEnv$getTrain.size()),"/SSN.downscaled.prob.100.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
   
     print(paste("All rasters assigned",Sys.time())) 
     	   	  
