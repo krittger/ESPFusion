@@ -73,3 +73,66 @@ Job ID	     Date	Time (wall clock)
 5554205_338  20061204
 
 Output are identical.
+
+2020-08-10
+
+Running regression on modis v3 data with Shalini's latest model
+(v4).
+
+Job ID	     Date
+5630511_23   20050123
+5630511_62   20110303
+5630511_92   20080401
+5630511_338  20061204
+
+Produced output, but wrote "v3" filenames.
+
+Fixed this, but then realized Shalini didn't produce the same
+dates that Will did.  Fixed the 4 regression dates and started
+over:
+
+Job ID	     Date     Start            Stop             Duration
+5631565_22   20050122 2020-08-10 17:16 2020-08-10 21:25 4h 09m
+5631565_345  20061211 2020-08-10 17:24 2020-08-10 21:34 4h 10m
+5631565_116  20040425 2020-08-10 17:24 2020-08-10 21:32 4h 08m
+5631565_71   20110312 2020-08-10 17:17 2020-08-10 21:23 4h 06m
+
+2020-08-12
+
+My results don't match Shalini's results. Realized my classifier
+run on the model is set to use num.trees=50, but examined the
+classifier model file, which has this value set to 100.  Will
+says this will definitely affect output values.  Trying a new run
+with no value set in the predict call (which is how Shalini is
+running it). This was the value that Will played with when he
+reduced the memory requirements to run on summit.  I think
+Shalini is running on a blanca node so she doesn't have to worry.
+
+Started a new regression job, used top to watch memory, it is
+definitely bumping up against 100GB memory capacity, but doesn't
+appear to be crashing (is R smart enough to start swapping?).
+
+Job ID	     Date     Start            Stop             Duration
+5646881_22   20050122 2020-08-13 03:16 2020-08-13 08:26 5h 10m
+5646881_345  20061211 2020-08-13 03:16 2020-08-13 08:07 4h 50m
+5646881_116  20040425 2020-08-13 03:16 2020-08-13 08:49 5h 33m
+564688a_71   20110312 2020-08-13 03:16 2020-08-13 08:23 5h 7m
+
+So running with 100 trees definitely takes longer and bumps
+memory limits.
+
+Outputs don't match Shalini's outputs.
+
+Asked her to set up a run where she sets num.trees=50. The other
+thing that's different is that I'm running on Summit and she's on
+Blanca.  Maybe there are precision issues?
+
+Added year subdirectory to output location trees.  I'm just going
+to start running with nTrees=50 on summit.  We need to start
+generating data.
+
+
+
+
+
+

@@ -46,7 +46,7 @@ parser <- OptionParser(usage = "%prog [options]", option_list=option_list);
 opt <- parse_args(parser);
 
 print(paste(Sys.time(), ": Begin"))
-print(sprintf("year=%d, doy=%d", opt$year, opt$dayOfYear))
+print(sprintf("year=%d, doy=%d, numTrees=%d", opt$year, opt$dayOfYear, opt$numTrees))
 print(sprintf("outDir=%s", opt$outDir))
 
 ##
@@ -57,7 +57,7 @@ setupFile <- myEnv$getPredictorFilenameFor(version=0)
 load(setupFile)
 
 ### Make output directories if needed
-outDirs <- ESPFusion::PrepOutDirs(opt$outDir, myEnv$getTrain.size())
+outDirs <- ESPFusion::PrepOutDirs(opt$outDir, myEnv$getTrain.size(), opt$year)
 
 ## Get study Extent information
 extent <- ESPFusion::StudyExtent("SouthernSierraNevada")
@@ -77,42 +77,41 @@ splits <- c(splits, dim(daydat)[1])
 landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent")
 pred.rast <- raster(landsat.sc.file.names[1])
 
-##
 ## Find the modis file to process
-##
 modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
                                          'snow_cover_percent',
                                          opt$modisVersion)
 modis.yyyymmdd <- myEnv$parseDateFrom(modis.sc.file.name)
 print(paste0("Processing MODIS file: ", modis.sc.file.name))
 
-##
 ## If all expected output files already exist for this date, don't repeat
-## processing.  We should add a command-line argument to override this
-## behavior to force processing even if files exist
-##
+## processing. This behavior can be overridden with --forceOverwrite
 outRegressionFile <-
     myEnv$getDownscaledFilenameFor(outDirs$regression,
                                    "regression",
                                    extent$shortName,
-                                   modis.yyyymmdd)
+                                   modis.yyyymmdd,
+                                   version=opt$modelVersion)
 outDownscaledFile <-
     myEnv$getDownscaledFilenameFor(outDirs$downscaled,
                                    "downscaled",
                                    extent$shortName,
-                                   modis.yyyymmdd)
+                                   modis.yyyymmdd,
+                                   version=opt$modelVersion)
 
 outProbBtwnFile <-
     myEnv$getDownscaledFilenameFor(outDirs$prob.btwn,
                                    "prob.btwn",
                                    extent$shortName,
-                                   modis.yyyymmdd)
+                                   modis.yyyymmdd,
+                                   version=opt$modelVersion)
 
 outProbHundredFile <-
     myEnv$getDownscaledFilenameFor(outDirs$prob.hundred,
                                    "prob.hundred",
                                    extent$shortName,
-                                   modis.yyyymmdd)
+                                   modis.yyyymmdd,
+                                   version=opt$modelVersion)
 
 if (!opt$forceOverwrite) {
     if (file.exists(outRegressionFile)
@@ -183,7 +182,7 @@ classifierFile <- myEnv$getModelFilenameFor("classifier", version=opt$modelVersi
 print(paste0(Sys.time(), ": loading classifierFile: ", classifierFile))
 load(classifierFile)
 
-print(paste0(Sys.time(), ": starting classification"))
+print(paste0(Sys.time(), ": starting classification..."))
 
 for(s in 1:(length(splits)-1)){
   these <- splits[s]:splits[s+1]
