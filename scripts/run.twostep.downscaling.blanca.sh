@@ -1,26 +1,19 @@
 #!/bin/sh
 
-#### Switch to this for normal summit job:
-#### SBATCH --qos=normal
-#### SBATCH --account=ucb157_summit1
-#### Switch to this for blanca preemptable:
+#### Switch to this for preemptible blanca job:
 #SBATCH --qos=preemptable
 #SBATCH --account=blanca-rittger
 #SBATCH --constraint='edr&skylake'
+#SBATCH --exclude=bgpu-papp1
 #SBATCH --ntasks-per-node=24
 #SBATCH --nodes=1
 #SBATCH --mem=100GB
-#SBATCH --time=00:30:00
+#SBATCH --time=8:00:00
 #SBATCH --output=output/run.twostep.downscaling.blanca-%A_%a.out
 #SBATCH --job-name=run.twostep.downscaling.blanca
-#SBATCH --mail-type=ALL
+#SBATCH --mail-type=END,FAIL,REQUEUE,STAGE_OUT
 #SBATCH --mail-user=brodzik@nsidc.org
-#SBATCH --array=1850
-
-# 1850: 20050123
-# 2530: 20061204
-# 3014: 20080401
-# 4080: 20110303
+#SBATCH --array=1
 
 usage() {
     echo "" 1>&2
@@ -29,6 +22,7 @@ usage() {
     echo "  -h: display help message and exit" 1>&2
     echo "Arguments: " 1>&2
     echo "  CONDAENV: conda env to activate with R and libraries" 1>&2
+    echo "  yyyy: 4-digit year to process" 1>&2
     echo "" 1>&2
 }
 
@@ -56,12 +50,18 @@ done
 
 shift $(($OPTIND - 1))
 
-[[ "$#" -eq 1 ]] || error_exit "Line $LINENO: Unexpected number of arguments."
+[[ "$#" -eq 2 ]] || error_exit "Line $LINENO: Unexpected number of arguments."
 
 condaenv=$1
+year=$2
+
 source activate $condaenv
 
-echo "${PROGNAME}: Processing dayIndex: ${SLURM_ARRAY_TASK_ID}" 1>&2
-Rscript --no-save --no-restore ../exec/twostep.downscaling.R --dayIndex=${SLURM_ARRAY_TASK_ID}
+echo "${PROGNAME}: Processing year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
+Rscript --no-save --no-restore ../exec/twostep.downscaling.R \
+--year=${year} --dayOfYear=${SLURM_ARRAY_TASK_ID} \
+--modelVersion=4 \
+--modisVersion=3 \
+--outDir=/pl/active/SierraBighorn/downscaledv4_production
 
 echo "${PROGNAME}: Done."

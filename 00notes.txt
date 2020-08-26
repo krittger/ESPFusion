@@ -131,8 +131,51 @@ Added year subdirectory to output location trees.  I'm just going
 to start running with nTrees=50 on summit.  We need to start
 generating data.
 
+To get duration of daily jobs, use:
 
+sacct -j 5656748 --format=jobid,jobname,user,elapsed,state | grep two > run.twostep.downscaling.summit.durations.2019.5656748.out
 
+Started with numtrees=50.
 
+Year	Queue  JobID   Started          Finished         Duration  Status
+2020
+	       doys should be through 12 Jun (1-164)
+2019 D  Summit 5656748 2020-08-16 16:41 2020-08-17 15:02 22h 20m   no errors/warnings
+     	       Most jobs < 5h, a couple took
+	       7.5 hours.
+2018 D	Summit 5664848 2020-08-17 14:55 2020-08-19 13:04 47h 0m    no errors/warnings
+	       	       		  		   	     	   Most took < 5 h
+2017 D  Summit 5681018 2020-08-19 13:25 2020-08-21 14:52 49h 20m   no errors/warnings
+     	       Most jobs 4-5h, one took 7:50. no errors/warnings.
+2016 D  blanca-preemptable
+	       9694236 2020-08-20 16:13 2020-08-21 19:44 27h 30m   Mixed, MaxSignal[9]
+	       most jobs took 3-4 hours, no warnings or
+	       errors in output, complete set of 366
+	       files is there.  Maybe the mixed
+	       signal was from the original error
+	       message?
+2015 D   Summit 5701271 2020-08-22 19:43 2020-08-24 06:41 35h       no errors/warnings
+	       Most jobs took 4-5 hours, one took 7:50!
+2014 D  blanca-preemptable
+	       9696148 2020-08-22 19:46 2020-08-23 17:52  22h       no errors/warnings	       
+	       Most jobs took 3-4.5 hours, 6 took > 5h
+2013 D  blanca-preemptable (added --exclude command, error still happened)
+	       9697419 2020-08-23 17:54 2020-08-24 03:43   9h       no errors/warnings
+	       Most jobs took 3-4.5 hours, 6 took > 5h	       
+*********************************
+New set of switches on blanca-preemptable, from Andy.
+2012    Summit 5716943 2020-08-24 13:38
+2011
+2010
+2009
+2008
+2007
+2006
+2005
+2004
+2003
+2002
+2001
+2000
 
 

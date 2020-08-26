@@ -85,6 +85,6 @@ Rscript --no-save --no-restore ../exec/twostep.downscaling.R \
 --forceOverwrite=TRUE \
 --modelVersion=4 \
 --modisVersion=3 \
---outDir=/pl/active/SierraBighorn/downscaledv4_test
+--outDir=/pl/active/SierraBighorn/downscaledv4_new
 
 echo "${PROGNAME}: Done, status= $?"

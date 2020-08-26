@@ -11,13 +11,7 @@
 #SBATCH --job-name=run.twostep.downscaling.summit
 #SBATCH --mail-type=END,FAIL,REQUEUE,STAGE_OUT
 #SBATCH --mail-user=brodzik@nsidc.org
-#SBATCH --array=23
-
-# Original array indices (for regression tests):
-# 1850: 20050123:  23
-# 2530: 20061204: 338
-# 3014: 20080401:  92
-# 4080: 20110303:  62
+#SBATCH --array=1-366
 
 usage() {
     echo "" 1>&2
@@ -61,7 +55,18 @@ year=$2
 
 source activate $condaenv
 
-echo "${PROGNAME}: Processing year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
-Rscript --no-save --no-restore ../exec/twostep.downscaling.R --year=${year} --dayOfYear=${SLURM_ARRAY_TASK_ID}
+if [ ${SLURM_ARRAY_TASK_ID} -le 365 ] || [ 0 -eq $(( ${year} % 4 )) ]
+   then
+       echo "${PROGNAME}: Processing year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
+       Rscript --no-save --no-restore ../exec/twostep.downscaling.R \
+--year=${year} --dayOfYear=${SLURM_ARRAY_TASK_ID} \
+--forceOverwrite=TRUE \
+--modelVersion=4 \
+--modisVersion=3 \
+--outDir=/pl/active/SierraBighorn/downscaledv4_production
+
+else
+    echo "${PROGNAME}: Skipping year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
+fi
 
 echo "${PROGNAME}: Done."
