@@ -60,7 +60,6 @@ if [ ${SLURM_ARRAY_TASK_ID} -le 365 ] || [ 0 -eq $(( ${year} % 4 )) ]
        echo "${PROGNAME}: Processing year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
        Rscript --no-save --no-restore ../exec/twostep.downscaling.R \
 --year=${year} --dayOfYear=${SLURM_ARRAY_TASK_ID} \
---forceOverwrite=TRUE \
 --modelVersion=4 \
 --modisVersion=3 \
 --outDir=/pl/active/SierraBighorn/downscaledv4_production

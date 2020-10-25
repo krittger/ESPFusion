@@ -1,11 +1,9 @@
 #!/bin/sh
 
-#### Switch to this for preemptible blanca job:
+#### Switch to this for preemptable blanca job:
 #SBATCH --qos=preemptable
 #SBATCH --account=blanca-rittger
-#SBATCH --constraint='edr&skylake'
-#SBATCH --exclude=bgpu-papp1
-#SBATCH --ntasks-per-node=24
+#SBATCH --exclusive
 #SBATCH --nodes=1
 #SBATCH --mem=100GB
 #SBATCH --time=8:00:00
@@ -13,7 +11,7 @@
 #SBATCH --job-name=run.twostep.downscaling.blanca
 #SBATCH --mail-type=END,FAIL,REQUEUE,STAGE_OUT
 #SBATCH --mail-user=brodzik@nsidc.org
-#SBATCH --array=1
+#SBATCH --array=1-366
 
 usage() {
     echo "" 1>&2
@@ -57,11 +55,17 @@ year=$2
 
 source activate $condaenv
 
-echo "${PROGNAME}: Processing year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
-Rscript --no-save --no-restore ../exec/twostep.downscaling.R \
+if [ ${SLURM_ARRAY_TASK_ID} -le 365 ] || [ 0 -eq $(( ${year} % 4 )) ]
+   then
+       echo "${PROGNAME}: Processing year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
+       Rscript --no-save --no-restore ../exec/twostep.downscaling.R \
 --year=${year} --dayOfYear=${SLURM_ARRAY_TASK_ID} \
 --modelVersion=4 \
 --modisVersion=3 \
 --outDir=/pl/active/SierraBighorn/downscaledv4_production
 
+else
+    echo "${PROGNAME}: Skipping year=${year}, dayOfYear=${SLURM_ARRAY_TASK_ID}" 1>&2
+fi
+    
 echo "${PROGNAME}: Done."
