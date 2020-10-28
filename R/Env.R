@@ -1,7 +1,5 @@
 #' Directory locations for ESPFusion files
 #'
-#' hi! A temporary testing comment from Steph.
-#'
 #' This class stores required directory locations for the ESPFusion
 #' processing system.
 #'
@@ -358,6 +356,5 @@ Env <- function() {
     ## Set the name for the class
     class(me) <- append(class(me), "Env")
     
-    ## random comment
     return(me)
 }
