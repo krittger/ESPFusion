@@ -73,3 +73,155 @@ Job ID	     Date	Time (wall clock)
 5554205_338  20061204
 
 Output are identical.
+
+2020-08-10
+
+Running regression on modis v3 data with Shalini's latest model
+(v4).
+
+Job ID	     Date
+5630511_23   20050123
+5630511_62   20110303
+5630511_92   20080401
+5630511_338  20061204
+
+Produced output, but wrote "v3" filenames.
+
+Fixed this, but then realized Shalini didn't produce the same
+dates that Will did.  Fixed the 4 regression dates and started
+over:
+
+Job ID	     Date     Start            Stop             Duration
+5631565_22   20050122 2020-08-10 17:16 2020-08-10 21:25 4h 09m
+5631565_345  20061211 2020-08-10 17:24 2020-08-10 21:34 4h 10m
+5631565_116  20040425 2020-08-10 17:24 2020-08-10 21:32 4h 08m
+5631565_71   20110312 2020-08-10 17:17 2020-08-10 21:23 4h 06m
+
+2020-08-12
+
+My results don't match Shalini's results. Realized my classifier
+run on the model is set to use num.trees=50, but examined the
+classifier model file, which has this value set to 100.  Will
+says this will definitely affect output values.  Trying a new run
+with no value set in the predict call (which is how Shalini is
+running it). This was the value that Will played with when he
+reduced the memory requirements to run on summit.  I think
+Shalini is running on a blanca node so she doesn't have to worry.
+
+Started a new regression job, used top to watch memory, it is
+definitely bumping up against 100GB memory capacity, but doesn't
+appear to be crashing (is R smart enough to start swapping?).
+
+Job ID	     Date     Start            Stop             Duration
+5646881_22   20050122 2020-08-13 03:16 2020-08-13 08:26 5h 10m
+5646881_345  20061211 2020-08-13 03:16 2020-08-13 08:07 4h 50m
+5646881_116  20040425 2020-08-13 03:16 2020-08-13 08:49 5h 33m
+564688a_71   20110312 2020-08-13 03:16 2020-08-13 08:23 5h 7m
+
+So running with 100 trees definitely takes longer and bumps
+memory limits.
+
+Outputs don't match Shalini's outputs.
+
+Asked her to set up a run where she sets num.trees=50. The other
+thing that's different is that I'm running on Summit and she's on
+Blanca.  Maybe there are precision issues?
+
+Added year subdirectory to output location trees.  I'm just going
+to start running with nTrees=50 on summit.  We need to start
+generating data.
+
+To get duration of daily jobs, use:
+
+sacct -j 5656748 --format=jobid,jobname,user,elapsed,state | grep two > durations.2019.5656748.out
+
+Started with numtrees=50.
+
+Year	Queue  JobID   Started          Finished         Duration  Status
+2020    blanca-preempt
+	       9760445 2020-09-05 10:55
+	       doys should be through 12 Jun (1-164)
+2019 D  Summit 5656748 2020-08-16 16:41 2020-08-17 15:02 22h 20m   no errors/warnings
+     	       Most jobs < 5h, a couple took
+	       7.5 hours.
+2018 D	Summit 5664848 2020-08-17 14:55 2020-08-19 13:04 47h 0m    no errors/warnings
+	       	       		  		   	     	   Most took < 5 h
+2017 D  Summit 5681018 2020-08-19 13:25 2020-08-21 14:52 49h 20m   no errors/warnings
+     	       Most jobs 4-5h, one took 7:50. no errors/warnings.
+2016 D  blanca-preemptable
+	       9694236 2020-08-20 16:13 2020-08-21 19:44 27h 30m   Mixed, MaxSignal[9]
+	       most jobs took 3-4 hours, no warnings or
+	       errors in output, complete set of 366
+	       files is there.  Maybe the mixed
+	       signal was from the original error
+	       message?
+2015 D   Summit 5701271 2020-08-22 19:43 2020-08-24 06:41 35h       no errors/warnings
+	       Most jobs took 4-5 hours, one took 7:50!
+2014 D  blanca-preemptable
+	       9696148 2020-08-22 19:46 2020-08-23 17:52  22h       no errors/warnings	       
+	       Most jobs took 3-4.5 hours, 6 took > 5h
+2013 D  blanca-preemptable (added --exclude command, error still happened)
+	       9697419 2020-08-23 17:54 2020-08-24 03:43   9h       no errors/warnings
+	       Most jobs took 3-4.5 hours, 6 took > 5h	       
+*********************************
+New set of switches on blanca-preemptable, from Andy.
+2012 D  Summit 5716943 2020-08-25 13:38 2020-08-26 22:46  35h       no errors/warnings
+	       Most jobs took 4-5 hours, 5 took > 5h
+2011 D  blanca-preemptable (set to --exclusive switches from Andy)
+	       9703414 2020-08-25 21:41 2020-08-26 14:17  16h 40m
+	       Feb 10 (day 41) missing, output says "Stale file
+	       handle"
+        blanca-preemptable running for doy 41 only
+	       9704180 done, finished 
+2010 D  blanca-preemptable
+               9704244 2020-08-26 22:40 2020-08-27 17:24  18h40m    no errors/warnings
+	       Most jobs took 3-4.5 hours, 4 took > 5h	       
+2009 D  Summit 5724684 2020-08-26 22:48 2020-08-28 08:51  32h       no errors/warnings
+	       Most jobs took 4-5 hours, 7 took > 5h, 1 took 7h50m
+2008 D  blanca-preemtable
+	       9715075 2020-08-27 16:43 2020-08-28 10:34  17h45m
+	       Most jobs took 3-4.5 hours, 14 took > 5h
+2007 D  Summit 5733716 2020-08-28 16:20 2020-08-29 22:08  19h50m    no errors/warnings/stale
+	       Most jobs took 4-5 hours, 7 took > 5 h, 3 took > 7 hours
+2006 D  blanca-preempt
+	       9716487 2020-08-28 16:34 2020-08-29 06:06  13h30m    no errors/warnings/stale
+	       Most jobs took 3-4.5 hours, 5 took > 5
+2005 D  blanca-preempt
+	       9717255 2020-08-29 08:19 2020-08-29 22:44  13h30m    no errors/warnings
+	       Most jobs took 3-4.5 hours, 3 took > 5
+	       03 Feb failed Stale file handle--reprocessing:
+	       9729309 2020-08-31 14:34 2020-08-31 17:38  3h        no errors/warnings
+2004 D  Summit 5739913 2020-08-29 22:22 2020-09-01 09:54  59h       no errors/warnings
+	       only 359 output files produced...missing files for
+	       dec 24-27, 29-31.
+	       Most jobs took 4.5-5.5 hours, none took > 6
+	       /pl/active/SierraBighorn is
+	       100% FULL, cleaned that up.  Re-running doys
+	       359-362, and 364-366:
+        Summit 5751706 2020-09-01 14:19 2020-09-02 08:58  18h40m    no errors/warnings
+	       Jobs took 4-5 hours	
+2003 D  blanca-preempt
+	       9718422 2020-08-29 22:24 2020-08-29 10:46  13h0m     no errors/warnings
+	       Most jobs took 3-4.5 hours, 6 took > 5 h, 1 took 7:09
+	       10 Mar failed "Stale File handle"--reprocessing:
+	       9729303 2020-08-31 ??    2020-09-02 06:15   4h45m    no errors/warnings
+2002    blanca-preempt
+	       9729178 2020-08-30 13:46 2020-09-02 06:27   40h    no errors/warnings
+	       stale error for doy 16,
+	       copy error for doy 132 (probably yesterday when
+	       disk was full). Jan 16, May 12
+	       Most jobs took 3-5 hours, 6 took > 5h
+	       reprocessing:
+	       9737440 2020-09-02 10:32 2020-09-02 15:52   5.5h    no errors/warnings
+2001    Summit 5751740 2020-09-01 14:42
+               Disk full again, dammit, lots of write errors.
+	       Cleaned up the disk, started over:
+	       5768082 2020-09-04 18:50 scancelled, removed --force-overwite
+	       5768088 2020-09-04 18:52
+2000 D  blanca-preempt
+	       9737808 2020-09-02 18:04--disk full, completely
+	       unfinished, cleaned it up, started over:
+	       9756553 2020-09-04 18:54 2020-09-04 23:48  5 h no errors/warnings/stale
+	       
+
+

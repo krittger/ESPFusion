@@ -129,7 +129,7 @@ create an R environment with the required packages.
    ```
 
    This will install the ESPFusion package components into the
-   currently runnint R installation (which is in the current conda env.)
+   currently running R installation (which is in the current conda env.)
    
 ## Notes for emacs users running R remotely
 
