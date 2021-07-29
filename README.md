@@ -40,7 +40,7 @@ create an R environment with the required packages.
 
    ```
    channels:
-    - https://conda.anaconda.org/conda-forge/channel/main
+    - conda-forge
     - defaults
    always_yes: true
    show_channel_urls: true
