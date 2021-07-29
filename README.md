@@ -249,4 +249,30 @@ For additional details and other package features, see:
 * https://r-pkgs.org/tests.html
 
 
-testing new text from Steph
+## Licensing
+
+The ESPFusion software has been developed at the University of
+Colorado, with contributions from multiple authors. To cite the
+use of ESPFusion, please use:
+
+Krock, M. L., W. Kleiber, M. J. Brodzik, B. Rajagopalan,
+K. Rittger. 2019. ESPFusion: Data fusion for downscaling Earth
+Surface Properties [Source code]. https://github.com/mjbrodzik/ESPFusion.
+
+ESPFusion is Copyright (C) 2019 Regents of the University of Colorado.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+

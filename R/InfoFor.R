@@ -10,6 +10,10 @@
 #' InfoFor(ls())
 #'
 #' @export
+#'
+#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+#' Copyright (C) 2019 Regents of the University of Colorado
+#'
 InfoFor <- function(list) {
 
     for (obj in list) {

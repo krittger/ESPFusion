@@ -14,6 +14,10 @@
 #' dirs = PrepOutDirs("/my/path/", 3e+05, 2001)
 #' 
 #' @export
+#'
+#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+#' Copyright (C) 2019 Regents of the University of Colorado
+#'
 PrepOutDirs <- function(folder, tsize, year) {
     print(paste0("Prepping ", folder, "..."))
 

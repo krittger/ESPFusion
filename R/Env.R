@@ -11,6 +11,10 @@
 #' 
 #' @return A list of directory locations used by the downscaling system
 #' @export
+#'
+#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+#' Copyright (C) 2019 Regents of the University of Colorado
+#'
 Env <- function() {
 
     ## Get the environment for this instance of the function

@@ -1,4 +1,8 @@
 #!/usr/bin/env Rscript
+#
+# 2019 Mitchell L. Krock mitchell.krock@colorado.edu 
+# Copyright (C) 2019 Regents of the University of Colorado
+#
 library(raster)
 library(ranger)
 
