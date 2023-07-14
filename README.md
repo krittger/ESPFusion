@@ -1,4 +1,4 @@
-# ESPFusion
+# Fusion-MODIS-Landsat
 Data fusion for downscaling Earth Surface Properties
 
 ## Configuring to run R
@@ -34,7 +34,13 @@ create an R environment with the required packages.
    which should return to the path to the newly installed conda in your /projects/
    directory.
 
-2. Set up your conda channels to look on the conda-forge online channel for the
+2. Update conda to latest release
+
+   ```
+   conda update conda
+   ```
+   
+3. Set up your conda channels to look on the conda-forge online channel for the
    packages we will need.  Create a new file in your home directory named ".condarc" and
    put the following commands in it:
 
@@ -46,26 +52,31 @@ create an R environment with the required packages.
    show_channel_urls: true
    ```
    
-3. Create a new conda environment with r-essentials built from
-   CRAN:
+4. Add mamba to your base conda env
 
    ```
-   conda create -n r_ESPFusion r-essentials r-base r-optparse
-   ```
-
-   (For developer tools and to build the package, you should use:
-
-   ```
-   conda create -n r_ESPFusion r-essentials r-base r-optparse r-devtools r-roxygen2 r-testthat
+   conda install mamba
    ```
    
-4. Activate the environment with:
+5. Create a new conda environment with all required packagess
+
+   ```
+   mamba create -n r_ESPFusion r-essentials r-base r-optparse r-devtools
+   ```
+
+   Alternatively, for development/testing tools and to build the package, you will need a few more:
+
+   ```
+   mamba create -n r_ESPFusion r-essentials r-base r-optparse r-devtools r-roxygen2 r-testthat r-fields r-raster r-ranger r-proj4 r-rgdal rstudio-desktop
+   ```
+   
+6. Activate the environment with:
 
    ```
    conda activate r_ESPFusion
    ```
    
-5. List the packages in the environment:
+7. List the packages in the environment:
 
    ```
    conda list
@@ -74,33 +85,27 @@ create an R environment with the required packages.
    This should indicate that the r-base package is installed, and
    will also include r-matrix
    
-6. The ESPFusion system requires 5 additional packages. Install
-   them with this command:
-
-   ```
-   conda activate r_ESPFusion
-   conda install r-fields r-raster r-ranger r-proj4 r-rgdal
-   ```
-   
-7. Open the R interactive interface:
+8. Open the R interactive interface:
 
    ```
    R
    ```
    
-8. Load the required packages:
+9. Load the required packages:
 
    In R:
 
    ```
    library(fields)
+   library(optparse)
    library(raster)
    library(ranger)
    library(proj4)
-   library(rgdal))
+   library(devtools)
+   library(rgdal)
    ```
    
-9. See what is currently loaded:
+10. See what is currently loaded:
 
    In R:
 
@@ -111,16 +116,16 @@ create an R environment with the required packages.
    The list of loaded packages should include fields, raster,
    ranger, proj4 and rgdal (and will include their dependencies)
 
-10. Clone the ESPFusion package from github to your /projects/$USER directory:
+11. Clone the ESPFusion package from github to your /projects/$USER directory:
 
    In a terminal:
    
    ```
    cd /projects/$USER
-   git clone https://github.com/mjbrodzik/ESPFusion.git
+   git clone https://github.cokm/krittger/Fusion-MODIS-Landsat.git
    ```
 
-11. To develop and/or run ESPFusion routines, install them this way:
+12. To develop and/or run ESPFusion routines, install them this way:
 
    In R:
    
@@ -128,9 +133,59 @@ create an R environment with the required packages.
    devtools::install()
    ```
 
-   This will install the ESPFusion package components into the
+   This will install the Fusion-MODIS-Landsat package components into the
    currently running R installation (which is in the current conda env.)
    
+## How to use RStudio
+
+RStudio (installed with rstudio-desktop) is an interactive development
+environment that you may find useful for debugging. Here is a tutorial you may find useful:
+
+https://www.datacamp.com/tutorial/r-studio-tutorial
+
+I recommend setting a couple of environment variables for some of RStudio default housekeeping files:
+
+Add these lines to your ~/.bashrc:
+
+# Added for RStudio                                                                                                                         # These will tell RStudio to make temporary files in                                                                                        # locations other than our very small home directories                                                                                      # This directory needs to have permissions 0700, otherwise RStudio complains                                                                export XDG_RUNTIME_DIR=/scratch/alpine/$USER/rstudio-runtime
+
+# See https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html                                                          # This directory controls where the default logging goes, default is ~/.local/share                                                         # Make it something that's not your home directory:                                                                                         export XDG_DATA_HOME=/projects/$USER/.local/share
+
+To use it, open an interactive desktop with ondemand
+
+On the desktop, open a Terminal, activate our conda env and run rstudio:
+
+```
+conda activate r_ESPFusion
+rstudio
+```
+
+See the tutorial above for debugging a specific R file. In RStudio, you can run
+the script with debugSource:
+
+```
+> setwd('/path/to/Fusion-MODIS-Landsat'
+> debugSource('exec/twostep.downscaling.R');
+```
+
+but this will only run the twostep.downscaling.R script with the default
+arguments.  To change the defaults, I have not figured how how to do it directly
+in the debugSource call. I have successfully created a breakpoint after the parse_args call,
+and then manually set the opt argument value to something other than the default:
+
+In RStudio, set a breakpoint in twostep.downscaling.R at line 52, then:
+
+```
+> debugSource('exec/twostop.downscaling.R')
+Browse[2]> opt$year
+[1] 2000
+Browse[2]> opt$year <- 2002
+```
+
+Here's a pretty good tutorial on debugging in RStudio:
+
+https://support.posit.co/hc/en-us/articles/205612627-Debugging-with-the-RStudio-IDE
+
 ## Notes for emacs users running R remotely
 
 1. On the remote machine set up the conda env with R installed (see the
@@ -150,7 +205,7 @@ create an R environment with the required packages.
      init stuff:
      ```
      if test "$TERM" = "dumb"; then
-        source active r_ESPFusion
+        source activate r_ESPFusion
      fi
      ```
      Apparently when emacs tramp connects to a remote machine, it sets
@@ -210,6 +265,9 @@ To work on a new feature or bug fix:
 
    https://r-pkgs.org/tests.html
 
+   When you are running the devtools commands, you must have the current
+   workin directory set to the top level of the ESPFusion clone location.
+   
    To run all tests:
 
    ```R
@@ -220,7 +278,7 @@ To work on a new feature or bug fix:
 
    ```R
    devtools::check()
-   ```
+n   ```
 
 4. Make sure inline documentation is updated with your changes.
    Use roxygen2 to update documentation with:
@@ -239,9 +297,18 @@ To work on a new feature or bug fix:
    devtools::install()
    ```
 
-6. Commit/push all your changes to the branch in Github, and
-   merge with master branch, or make a pull request to review
-   changes with others.
+6. Edit any of the .R files, and reload them to see the results with
+
+   ```R
+   devtools::load_all()
+   ```
+
+   Keep making changes and evaluating the results until you are happy
+   with your changes.
+   
+7. When you have completed your changes, commit/push all your changes to the
+   branch in Github, and merge with master branch, or make a pull request to
+   review changes with others.
    
 For additional details and other package features, see:
 
