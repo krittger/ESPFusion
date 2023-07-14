@@ -139,7 +139,8 @@ create an R environment with the required packages.
 ## How to use RStudio
 
 RStudio (installed with rstudio-desktop) is an interactive development
-environment that you may find useful for debugging. Here is a tutorial you may find useful:
+environment that you may find useful for debugging. Here is a tutorial you may
+find useful:
 
 https://www.datacamp.com/tutorial/r-studio-tutorial
 
@@ -147,24 +148,55 @@ I recommend setting a couple of environment variables for some of RStudio defaul
 
 Add these lines to your ~/.bashrc:
 
-# Added for RStudio                                                                                                                         # These will tell RStudio to make temporary files in                                                                                        # locations other than our very small home directories                                                                                      # This directory needs to have permissions 0700, otherwise RStudio complains                                                                export XDG_RUNTIME_DIR=/scratch/alpine/$USER/rstudio-runtime
+   ```
+   # Added for RStudio
+   # These will tell RStudio to make temporary files in
+   # locations other than our very small home directories
+   # This directory needs to have permissions 0700, otherwise RStudio complains
+   export XDG_RUNTIME_DIR=/scratch/alpine/$USER/rstudio-runtime
 
-# See https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html                                                          # This directory controls where the default logging goes, default is ~/.local/share                                                         # Make it something that's not your home directory:                                                                                         export XDG_DATA_HOME=/projects/$USER/.local/share
+   # See https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+   # This directory controls where the default logging goes, default is ~/.local/share
+   # Make it something that's not your home directory:
+   export XDG_DATA_HOME=/projects/$USER/.local/share
+   ```
 
-To use it, open an interactive desktop with ondemand
+   When you edit your ~/.bashrc, you must either logout/login or source it
+   for the changes to take effect:
 
-On the desktop, open a Terminal, activate our conda env and run rstudio:
+   ```
+   source ~/.bashrc
+   ```
 
-```
-conda activate r_ESPFusion
-rstudio
-```
+### Open an interactive desktop with ondemand:
+
+1. In the Web browser on your local machine, connect to
+   ondemand.rc.colorado.edu and authorize with your identikey
+
+2. Top nav, go to "Interactive Apps"→"Core Desktop"
+
+3. Ask for node/cores, leave account blank to use default, which is ucb-general.
+
+4. Once in the core desktop, open the Terminal app (small icon near the top left)
+
+5. cd to the location where you have cloned ESPFusion, and activate the
+   conda env, and start RStudio:
+
+   ```R
+   cd /projects/$USER/ESPFusion
+   conda activate r_ESPFusion
+   rstudio
+   ```
+
+   The RStudio GUI should open up on the Core Desktop.
+
+### Debugging/developing R from RStudio
 
 See the tutorial above for debugging a specific R file. In RStudio, you can run
 the script with debugSource:
 
 ```
-> setwd('/path/to/Fusion-MODIS-Landsat'
+> setwd('/path/to/Fusion-MODIS-Landsat')
 > debugSource('exec/twostep.downscaling.R');
 ```
 
