@@ -279,10 +279,18 @@ scripts/ folder.
    ```TBD```
 
 3. Do downscaling: the main function for running downscaling is
-   twostep.downscaling.R, which works on 1 day of data.
+   twostep.downscaling.R, which works on 1 day of data, e.g. from a
+   command-line at the top level directory:
 
-   ```TBD```
+   ```
+   Rscript --no-save --no-restore exec/twostep.downscaling.R \
+   --year=YYYY --dayOfYear=DDD --modelVersion=4 --modisVersion=3 \
+   --outDir=/scratch/alpine/$USER/downscaledv4_production
+   ```
 
+   The Slurm bash script scripts/run.twostep.downscaling.summit.sh is
+   set up as a SLURM array job for each day of the input year.
+   
 ## Development Cycle for ESPFusion system
 
 To work on a new feature or bug fix:
