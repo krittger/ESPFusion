@@ -6,7 +6,11 @@
 #' @param myT second image
 #' @param thresh difference threshold (how is this used?)
 #' @return stats list of comparison statistics
-#' @export 
+#' @export
+#'
+#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+#' Copyright (C) 2019 Regents of the University of Colorado
+#'
 SCAcompare <- function(myC,myT,thresh) #remove NA's from myC and myT
 {
 	

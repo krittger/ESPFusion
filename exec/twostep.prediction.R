@@ -1,3 +1,8 @@
+#
+# 2019 Mitchell L. Krock mitchell.krock@colorado.edu 
+# Copyright (C) 2019 Regents of the University of Colorado
+#
+
 #specify the number of points to be randomly sampled from the good indices each day. 
 library(fields)
 library(raster)
