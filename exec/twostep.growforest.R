@@ -3,80 +3,35 @@
 # Copyright (C) 2019 Regents of the University of Colorado
 #
 
-#specify the number of points to be randomly sampled from the good indices each day. 
-train.size <- 3e5
-
-
 library(fields)
 library(raster)
 library(ranger)
 
-
-check_create_dir <- function(new.dir)
-{
-	if(!dir.exists(new.dir)){
-		dir.create(new.dir)
-	}
-}
-
-
-#creating directories where data will be saved
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/downscaled"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/prob.btwn"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/prob.hundred"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/regression"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/downscaled/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/prob.btwn/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/prob.hundred/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/regression/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/pix/",as.character(train.size)))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/pix/",as.character(train.size),"/statpix"))
-check_create_dir(paste0("/pl/active/SierraBighorn/downscaledv3/pix/",as.character(train.size),"/rasterpix"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/forest"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/forest/twostep"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/forest/twostep/classification"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/forest/twostep/regression"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/SCA"))
-check_create_dir(paste0("/pl/active/SierraBighorn/Rdata/SCA/",as.character(train.size)))
-
+myEnv <- ESPFusion::Env()
+studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 
 
 ## List data files and set up region bounds
-modis.path <- "/pl/active/SierraBighorn/scag/MODIS/SSN/v01/"
-clear.landsat.path <- "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN/v01/"
-cloudy.landsat.path <- "/pl/active/SierraBighorn/scag/Landsat/UCSB_v3_processing/SSN_cloudy/v01/"
-Rdata_path <- "/pl/active/SierraBighorn/Rdata/"
+modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent",version=3)
 
-modis.file.names <- list.files(modis.path)
-modis.sc.file.names <- modis.file.names[!grepl("viewable",modis.file.names)]
+clear.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask",version=1,includeCloudy=FALSE)
+clear.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent",version=1,includeCloudy=FALSE)
 
-clear.landsat.file.names <- list.files(clear.landsat.path)
-clear.sat.mask.file.names <- clear.landsat.file.names[grepl("saturation_mask",clear.landsat.file.names)]
-clear.landsat.sc.file.names <- clear.landsat.file.names[grepl("snow_cover",clear.landsat.file.names)]
-clear.landsat.sc.file.names <- clear.landsat.sc.file.names[!grepl("viewable",clear.landsat.sc.file.names)]
-
-
-cloudy.landsat.file.names <- list.files(cloudy.landsat.path)
-cloudy.landsat.file.names <- cloudy.landsat.file.names[grepl("ProbCM",cloudy.landsat.file.names)]
-cloudy.sat.mask.file.names <- cloudy.landsat.file.names[grepl("saturation_mask",cloudy.landsat.file.names)]
-
-cloudy.landsat.sc.file.names <- cloudy.landsat.file.names[grepl("snow_cover",cloudy.landsat.file.names)]
-cloudy.landsat.sc.file.names <- cloudy.landsat.sc.file.names[!grepl("viewable",cloudy.landsat.sc.file.names)]
+cloudy.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask.ProbCM",version=1,includeCloudy=TRUE)
+cloudy.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent.ProbCM",version=1,includeCloudy=TRUE)
 
 landsat.sc.file.names <- c(clear.landsat.sc.file.names,cloudy.landsat.sc.file.names)
 sat.mask.file.names <- c(clear.sat.mask.file.names,cloudy.sat.mask.file.names)
 
-rm(clear.landsat.file.names, cloudy.landsat.file.names, cloudy.sat.mask.file.names,clear.sat.mask.file.names, modis.file.names)
+rm(cloudy.sat.mask.file.names,clear.sat.mask.file.names)
 
 ## Get dates
 mod.date <- lst.date <- cloudy.lst.date <- NULL
 for(i in 1:length(modis.sc.file.names)){
-	mod.date[i] <- substr(modis.sc.file.names[i],start=15,stop=22)
+	mod.date[i] <- regmatches(modis.sc.file.names[i], regexpr("\\d{8}",modis.sc.file.names[i]))
 	}
 for(i in 1:length(landsat.sc.file.names)){
-	lst.date[i] <- substr(landsat.sc.file.names[i],start=14,stop=21)
+	lst.date[i] <- regmatches(landsat.sc.file.names[i], regexpr("\\d{8}",landsat.sc.file.names[i]))
 	}
 
 mod.date <- as.integer(mod.date)
@@ -100,15 +55,11 @@ modis.sc.file.names <- modis.sc.file.names[out]
 mod.date <- mod.date[out]
 
 
-
 out <- format(lst.date,"%Y%m%d") %in% format(mod.date,"%Y%m%d")
 landsat.sc.file.names <- landsat.sc.file.names[out]
 sat.mask.file.names <- sat.mask.file.names[out]
 lst.date <- lst.date[out]
 rm(out)
-
-cloudy.days <- grepl("ProbCM",landsat.sc.file.names)
-
 
 ## Not necessary after censoring only dates on which both LST and MOD are available
 ## Remove leap days
@@ -125,6 +76,7 @@ mod.yr <- as.integer(format(mod.date,"%Y"))
 
 these <- ((mod.yr %% 4) == 0) & (mod.da >= 59)
 mod.da[these] <- mod.da[these] - 1
+#### using mod.yr later for path definition
 rm(these,mod.yr)
 
 mod.da <- mod.da + 1
@@ -137,63 +89,63 @@ nday <- length(mod.da)
 ##
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Elevation.tif")
-elev <- t(matrix(values(out),nc=14752,nr=9712))
+elev <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 elev[elev < (-100)] <- NA
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Slope.tif")
-slope <- t(matrix(values(out),nc=14752,nr=9712))
+slope <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 slope[slope < 0] <- NA
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Aspect.tif")
-asp <- t(matrix(values(out),nc=14752,nr=9712))
+asp <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 asp[asp < (-2)] <- NA
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_LandClassNLCD.tif")
-lty <- t(matrix(values(out),nc=14752,nr=9712))
+lty <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/landcover/LandFireEVH_ucsb/SSN.LandFireEVH_SN30m_height_m.v01.tif")
-forest.height <- t(matrix(values(out),nc=14752,nr=9712))
+forest.height <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_NorthWestBarrierDistance.tif")
-nw.barrierdist <- t(matrix(values(out),nc=14752,nr=9712))
+nw.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_SouthWestBarrierDistance.tif")
-sw.barrierdist <- t(matrix(values(out),nc=14752,nr=9712))
+sw.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_WestBarrierDistance.tif")
-w.barrierdist <- t(matrix(values(out),nc=14752,nr=9712))
+w.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_SouthWestDistanceToWater.tif")
-sw.waterdist <- t(matrix(values(out),nc=14752,nr=9712))
+sw.waterdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_WestDistanceToWater.tif")
-w.waterdist <- t(matrix(values(out),nc=14752,nr=9712))
+w.waterdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
 out <- raster("/pl/active/SierraBighorn/predictors/downscaled_s_sierra_winds_dec_april_climatology_nldas2.tif")
-windspeed <- t(matrix(values(out),nc=14752,nr=9712))
+windspeed <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
 
-locs <- expand.grid(x=1:9712,y=1:14752) #expand.grid(x=seq(from=129187.3,by=30,length.out= 9712), y=seq(from=3918807,by=30,length.out= 14752))
-locs.x <-  t(matrix(locs[,1],nc= 14752,nr= 9712))
-locs.y <-  t(matrix(locs[,2],nc= 14752,nr= 9712))
-locs <- cbind(c(locs.x),rev(locs.y))/14752
+locs <- expand.grid(x=1:studyExtent$highResCols,y=1:studyExtent$highResRows) 
+locs.x <-  t(matrix(locs[,1],nc= studyExtent$highResRows,nr= studyExtent$highResCols))
+locs.y <-  t(matrix(locs[,2],nc= studyExtent$highResRows,nr= studyExtent$highResCols))
+locs <- cbind(c(locs.x),rev(locs.y))/studyExtent$highResRows
 
 
-smalllocs <- expand.grid(x=1:607,y=1:922) #expand.grid(x=seq(from=129187.3,to= 420517.3,length.out= 607), y=seq(from=3918807,to= 4361337,length.out= 922))
-smalllocs.x <-  t(matrix(smalllocs[,1],nc= 922,nr= 607))
-smalllocs.y <-  t(matrix(smalllocs[,2],nc= 922,nr= 607))
-smalllocs <- cbind(c(smalllocs.x),rev(smalllocs.y))/922
+smalllocs <- expand.grid(x=1:studyExtent$lowResCols,y=1:studyExtent$lowResRows) 
+smalllocs.x <-  t(matrix(smalllocs[,1],nc= studyExtent$lowResRows,nr= studyExtent$lowResCols))
+smalllocs.y <-  t(matrix(smalllocs[,2],nc= studyExtent$lowResRows,nr= studyExtent$lowResCols))
+smalllocs <- cbind(c(smalllocs.x),rev(smalllocs.y))/studyExtent$lowResRows
 
 #plot with quilt.plot(locs,c(elev))
 
@@ -222,37 +174,23 @@ feature.NA <- which(is.na(elev))
 
 for(day in 1:nday){ 
 	
-
-	
-	if(cloudy.days[day]) {
-		landsat.path <- cloudy.landsat.path
-	} else {
-		landsat.path <- clear.landsat.path
-	}
-	
-	LST  <- t(matrix(values(raster(paste0(landsat.path,landsat.sc.file.names[day]))),nc= 14752,nr= 9712))
+	LST  <- t(matrix(values(raster(landsat.sc.file.names[day])),nc= studyExtent$highResRows,nr= studyExtent$highResCols))
 	LST.NA <- which(LST==255)
 	
-	sat.mask <- t(matrix(values(raster(paste0(landsat.path,sat.mask.file.names[day]))),nc= 14752,nr= 9712))
+	sat.mask <- t(matrix(values(raster(sat.mask.file.names[day])),nc= studyExtent$highResRows,nr= studyExtent$highResCols))
 	LST.sat <- which(sat.mask==1)
 	rm(sat.mask)
 	
-	these.good.day <- (1:(14752*9712))[-c(LST.sat,LST.NA,feature.NA)]
-	train.indices.day <- sample(these.good.day,train.size)
+	these.good.day <- (1:(studyExtent$highResRows*studyExtent$highResCols))[-c(LST.sat,LST.NA,feature.NA)]
+	train.indices.day <- sample(these.good.day,myEnv$getTrain.size())
 	
 	train.LST[[day]] <- LST[train.indices.day]
 	rm(LST)
-	
-	mod <- t(matrix(values(raster(paste0(modis.path, modis.sc.file.names[day]))),nc=922,nr=607))
 
-	MOD.big <- array(dim=c(14752,9712)) 
-		for(k in 1:dim(mod)[1]){
-			for(ell in 1:dim(mod)[2]){
-				MOD.big[(16*k-15):(16*k),(16*ell-15):(16*ell)] <- mod[k,ell]
-		}
-	}
+	MOD.big <- t(matrix(values(raster(modis.sc.file.names[day])),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
+
   train.MOD[[day]] <- MOD.big[train.indices.day]
-  rm(MOD.big,mod)
+  rm(MOD.big)
 
   train.slope[[day]] <- slope[train.indices.day]
   train.asp[[day]] <- asp[train.indices.day]
@@ -272,12 +210,9 @@ for(day in 1:nday){
 	print(paste0("Day ", day, " of ", nday, ", ", length(train.indices.day), " training indices from ", length(these.good.day), " possible"))
 }
 
-
 train.da.nNA <- unlist(lapply(train.LST,length))
-sum(train.da.nNA)/1e6 # how many millions of data points you grabbed
 
 #training data fully constructed here
-
 train.dat <- data.frame(lst=unlist(train.LST),
 	da=rep(mod.da,times=train.da.nNA),
 	elev=unlist(train.elev),
@@ -325,11 +260,9 @@ print(object.size(ranger.classifier),units="GB")
 ranger.classifier$prediction.error
 
 print(Sys.time())
-save(ranger.classifier,file=paste0(Rdata_path,"forest/twostep/classification/ranger.classifier.prob",as.character(train.size),".Rda"))
+save(ranger.classifier,file=myEnv$getModelFilenameFor("classifier",version=3))
 print(Sys.time())
 rm(ranger.classifier)
-
-
 
 ##
 ## Growing and saving the regression forest
@@ -344,7 +277,7 @@ print(Sys.time())
 print(object.size(ranger.regression),units="GB")
 ranger.regression$prediction.error
 
-save(ranger.regression,file=paste0(Rdata_path,"/forest/twostep/regression/ranger.regression.prob",as.character(train.size),".Rda"))
+save(ranger.regression,file=myEnv$getModelFilenameFor("regression",version=3))
 
 
 
