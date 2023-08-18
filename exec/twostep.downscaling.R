@@ -6,27 +6,36 @@
 library(raster)
 library(ranger)
 
+library(devtools)
+setwd("/projects/lost1845/ESPFusion")
+#devtools::install()
+
 suppressPackageStartupMessages(require(optparse))
 
 ### Get default environment
+devtools::load_all()
 myEnv <- ESPFusion::Env()
+myEnv$getFusionDir()
+## change environment to Env.R file instead of R package
+#source("R/Env.R")
+#myEnv <- Env()
 
 ### Parse inputs
 option_list = list(
     make_option(c("-y", "--year"), type="integer",
-                default=2000,
+                default=2020,
                 help="year of data to process [default=%default]",
                 metavar="integer"),
     make_option(c("-d", "--dayOfYear"), type="integer",
-                default=55,
+                default=165,
                 help="day of year to process [default=%default]",
                 metavar="integer"),
     make_option(c("-i", "--modisVersion"), type="integer",
-                default=1,
+                default=4,
                 help="version of MODIS input data to process [default=%default]",
                 metavar="integer"),
     make_option(c("-m", "--modelVersion"), type="integer",
-                default=2,
+                default=4,
                 help="version of model classifier/regresionfiles to use [default=%default]",
                 metavar="integer"),
     make_option(c("-t", "--numTrees"), type="integer",
@@ -57,7 +66,8 @@ print(sprintf("outDir=%s", opt$outDir))
 ## Setup for downscaling
 ## (this should contain daydat and theseNA)
 ##
-setupFile <- myEnv$getPredictorFilenameFor(version=0)
+#setupFile <- myEnv$getPredictorFilenameFor(version=0)
+setupFile <- "/pl/active/rittger_esp/SierraBighorn/Rdata/predictors.SCA.v00.RData"
 load(setupFile)
 
 ### Make output directories if needed
@@ -82,9 +92,15 @@ landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent")
 pred.rast <- raster(landsat.sc.file.names[1])
 
 ## Find the modis file to process
-modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
+if(opt$modisVersion < 4){
+  modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
                                          'snow_cover_percent',
                                          opt$modisVersion)
+} else{
+  modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
+                                           'snow_fraction',
+                                           opt$modisVersion)
+}
 modis.yyyymmdd <- myEnv$parseDateFrom(modis.sc.file.name)
 print(paste0("Processing MODIS file: ", modis.sc.file.name))
 
