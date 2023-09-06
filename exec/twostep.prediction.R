@@ -3,17 +3,51 @@
 # Copyright (C) 2019 Regents of the University of Colorado
 #
 
+print(paste0("Begin script:", Sys.time()))
+
 #specify the number of points to be randomly sampled from the good indices each day. 
 library(fields)
 library(raster)
 library(ranger)
 
+## Following 3 lines used for live debugging
+#library(devtools)
+#setwd("/projects/lost1845/ESPFusion")
+#devtools::load_all()
 myEnv <- ESPFusion::Env()
 studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 
+suppressPackageStartupMessages(require(optparse))
+
+### Parse inputs
+option_list = list(
+  make_option(c("-i", "--modisVersion"), type="integer",
+              default=3,
+              help="version of MODIS input data to process [default=%default]",
+              metavar="integer"),
+  make_option(c("-m", "--modelVersion"), type="integer",
+              default=3,
+              help="version of model classifier/regresionfiles to use [default=%default]",
+              metavar="integer"),
+  make_option(c("-f", "--forceOverwrite"), type="logical",
+              default=FALSE,
+              help="force output files to overwrite any previous outputs [default=%default]",
+              metavar="logical"),
+  make_option(c("-o", "--outDir"), type="character",
+              default=myEnv$getFusionDir(),
+              help=paste0("top-level output directory\n",
+                          "\t\t[default=%default]\n",
+                          "\t\twill contain output for downscaled, prob.btwn,\n",
+                          "\t\tprob.hundred and regression"),
+              metavar="character")
+);
+
+parser <- OptionParser(usage = "%prog [options]", option_list=option_list);
+opt <- parse_args(parser);
+
 
 ## List data files and set up region bounds
-modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent", version=3)
+modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent", version=opt$modisVersion)
 
 clear.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask", version=1, includeCloudy=FALSE)
 clear.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent", version=1, includeCloudy=FALSE)
@@ -89,50 +123,50 @@ nday <- length(mod.da)
 ## Load and organize feature data
 ##
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Elevation.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_Elevation.tif")
 elev <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 elev[elev < (-100)] <- NA
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Slope.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_Slope.tif")
 slope <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 slope[slope < 0] <- NA
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Aspect.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_Aspect.tif")
 asp <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 asp[asp < (-2)] <- NA
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_LandClassNLCD.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_LandClassNLCD.tif")
 lty <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/landcover/LandFireEVH_ucsb/SSN.LandFireEVH_SN30m_height_m.v01.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/landcover/LandFireEVH_ucsb/SSN.LandFireEVH_SN30m_height_m.v01.tif")
 forest.height <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_NorthWestBarrierDistance.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_NorthWestBarrierDistance.tif")
 nw.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_SouthWestBarrierDistance.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_SouthWestBarrierDistance.tif")
 sw.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_WestBarrierDistance.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_WestBarrierDistance.tif")
 w.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_SouthWestDistanceToWater.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_SouthWestDistanceToWater.tif")
 sw.waterdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_WestDistanceToWater.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_WestDistanceToWater.tif")
 w.waterdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/downscaled_s_sierra_winds_dec_april_climatology_nldas2.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/downscaled_s_sierra_winds_dec_april_climatology_nldas2.tif")
 windspeed <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
@@ -216,7 +250,7 @@ rm(slope, asp, elev, lty, lon, lat, forest.height, nw.barrierdist, sw.barrierdis
   splits <- c(splits,dim(daydat)[1])
 
 
-for(day in 1:nday){ 
+for(day in 1:nday){
   	print(paste0("Starting ",mod.date[day]," at ",Sys.time()))
   	
     MOD.big <- t(matrix(values(raster(modis.sc.file.names[day])),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
@@ -253,27 +287,82 @@ for(day in 1:nday){
      }   
     print(paste("regression done",Sys.time()))
     rm(these,ranger.temp)
+    
+    ### Make output directories if needed
+    outDirs <- ESPFusion::PrepOutDirs(opt$outDir, myEnv$getTrain.size(), format(mod.date[day],"%Y"))
     	    	     	    
     	    	     	    
     print(paste("Saving rasters",Sys.time())) 
   	downscaled[-theseNA] <- as.integer(round(regressionvalues)) 	    
   	pred.rast <- raster(landsat.sc.file.names[day])
   	values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/regression/",as.character(myEnv$getTrain.size()),"/SSN.downscaled.regression.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+  	outRegressionFile <-
+  	  myEnv$getDownscaledFilenameFor(outDirs$regression,
+  	                                 "regression",
+  	                                 studyExtent$shortName,
+  	                                 format(mod.date[day],"%Y%m%d"),
+  	                                 version=opt$modelVersion)
+  	writeRaster(pred.rast,
+  	            filename=outRegressionFile,
+  	            format="GTiff",
+  	            option="COMPRESS=LZW",
+  	            datatype="INT1U",
+  	            overwrite=TRUE)
+  	print(paste(Sys.time(), ": regression saved to: ", outRegressionFile))
+  	#writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/regression/",as.character(myEnv$getTrain.size()),"/SSN.downscaled.regression.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
     	  
     downscaled[-theseNA][classes == 0] <- as.integer(0)
     downscaled[-theseNA][classes == 2] <- as.integer(100)
     values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/downscaled/",as.character(myEnv$getTrain.size()),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+    outDownscaledFile <-
+      myEnv$getDownscaledFilenameFor(outDirs$downscaled,
+                                     "downscaled",
+                                     studyExtent$shortName,
+                                     format(mod.date[day],"%Y%m%d"),
+                                     version=opt$modelVersion)
+    writeRaster(pred.rast,
+                filename=outDownscaledFile,
+                format="GTiff",
+                option="COMPRESS=LZW",
+                datatype="INT1U",
+                overwrite=TRUE)
+    print(paste(Sys.time(), ": full downscaled saved to: ", outDownscaledFile))
+    #writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/downscaled/",as.character(myEnv$getTrain.size()),"/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
     	   
   
     downscaled[-theseNA] <- prob.btwn
     values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols)))
-    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/prob.btwn/",as.character(myEnv$getTrain.size()), "/SSN.downscaled.prob.0.100.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+    outProbBtwnFile <-
+      myEnv$getDownscaledFilenameFor(outDirs$prob.btwn,
+                                     "prob.btwn",
+                                     studyExtent$shortName,
+                                     format(mod.date[day],"%Y%m%d"),
+                                     version=opt$modelVersion)
+    writeRaster(pred.rast,
+                filename=outProbBtwnFile,
+                format="GTiff",
+                option="COMPRESS=LZW",
+                datatype="INT1U",
+                overwrite=TRUE)
+    print(paste(Sys.time(), ": prob of (0,100) saved to:", outProbBtwnFile))
+    #writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/prob.btwn/",as.character(myEnv$getTrain.size()), "/SSN.downscaled.prob.0.100.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
   
     downscaled[-theseNA] <- prob.hundred
     values(pred.rast) <- c(t(matrix(downscaled,nr=studyExtent$highResRows,nc=studyExtent$highResCols))) 	     	  
-    writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/prob.hundred/", as.character(myEnv$getTrain.size()),"/SSN.downscaled.prob.100.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
+    outProbHundredFile <-
+      myEnv$getDownscaledFilenameFor(outDirs$prob.hundred,
+                                     "prob.hundred",
+                                     studyExtent$shortName,
+                                     format(mod.date[day],"%Y%m%d"),
+                                     version=opt$modelVersion)
+    writeRaster(pred.rast,
+                filename=outProbHundredFile,
+                format="GTiff",
+                option="COMPRESS=LZW",
+                datatype="INT1U",
+                overwrite=TRUE)
+    print(paste(Sys.time(), ": prob of 100 saved to:", outProbHundredFile))
+    #writeRaster(pred.rast,filename=paste0("/pl/active/SierraBighorn/downscaledv4/downscaled_MODIS_smoothed/prob.hundred/", as.character(myEnv$getTrain.size()),"/SSN.downscaled.prob.100.", format(mod.date[day],"%Y%m%d"),".v3.tif"),     format="GTiff",option="COMPRESS=LZW",datatype="INT1U",overwrite=TRUE)
   
     print(paste("All rasters assigned",Sys.time())) 
     	   	  
@@ -281,3 +370,4 @@ for(day in 1:nday){
     
 }
 
+print(paste0("End Script:", Sys.time()))
