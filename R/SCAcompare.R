@@ -47,6 +47,7 @@ SCAcompare <- function(myC,myT,thresh) #remove NA's from myC and myT
 	denom <- ifelse(length(diffvector)==1,1,length(diffvector)-1)
 	stats$meandiff.default <- mean(diffvector)
 	stats$meddiff.default <- median(diffvector)
+	diffvector <- as.matrix(diffvector) # added to avoid error from following line
 	stats$RMSE.default <- sqrt((norm(diffvector,type="F")^2)/denom)
 	
 	#compare conditional on true Landsat pixel in (0,100)
@@ -56,6 +57,7 @@ SCAcompare <- function(myC,myT,thresh) #remove NA's from myC and myT
 	denom <- ifelse(length(diffvector)==1,1,length(diffvector)-1)
 	stats$meandiff.Tbtwn <- mean(diffvector)
 	stats$meddiff.Tbtwn <- median(diffvector)
+	diffvector <- as.matrix(diffvector) # added to avoid error from following line
 	stats$RMSE.Tbtwn <- sqrt((norm(diffvector,type="F")^2)/denom)
 	
 	#compare conditional on true Landsat pixel and downscaled pixel in (0,100)
@@ -65,6 +67,7 @@ SCAcompare <- function(myC,myT,thresh) #remove NA's from myC and myT
 	denom <- ifelse(length(diffvector)==1,1,length(diffvector)-1)
 	stats$meandiff.CTbtwn <- mean(diffvector)
 	stats$meddiff.CTbtwn <- median(diffvector)
+	diffvector <- as.matrix(diffvector) # added to avoid error from following line
 	stats$RMSE.CTbtwn <- sqrt((norm(diffvector,type="F")^2)/denom)
 	
 
