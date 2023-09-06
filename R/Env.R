@@ -21,35 +21,39 @@ Env <- function() {
     thisEnv <- environment()
 
     ## Path that is common to many others
-    topDir <- "/pl/active/SierraBighorn"
+   # topDir <- "/pl/active/SierraBighorn"
 
     ## path to non-cloudy Landsat region (e.g. SSN) files
     ## (this path does not include the version level,
     ## assumes it is 'vXX')
-    landsatDir = paste0(topDir,
-                        "/scag/Landsat/UCSB_v3_processing/SSN")
+    landsatDir = "/pl/active/rittger_esp/scag/Landsat/UCSB_v3_processing/SSN"
         
     ## path to cloudy Landsat region (e.g. SSN) files
     ## that have been masked for probable clouds
     ## (this path does not include the version level,
     ## assumes it is 'vXX')
-    cloudyLandsatDir = paste0(topDir,
-                        "/scag/Landsat/UCSB_v3_processing/SSN_cloudy")
+    cloudyLandsatDir = "/pl/active/rittger_esp/scag/Landsat/UCSB_v3_processing/SSN_cloudy"
         
     ## path to co-located MODIS region (e.g. SSN) files
     ## (this path does not include the version level,
     ## assumes it is 'vXX')
-    modisDir = paste0(topDir,
-                      "/scag/MODIS/SSN")
+    modisDir = "/pl/active/rittger_esp/scag/MODIS/SSN"
         
     ## path to model information:
     ## predictors file lives in this directory
     ## regression and classifiers directories are here
     ## processing assumes one more levels down from here with 'modelName'
-    modelDir = paste0(topDir, "/Rdata")
-        
+
+    ## Use this directory for new models 	
+    modelDir = "/scratch/alpine/lost1845/active/SierraBighorn/Rdata"
+    ## Use this directory for models previously developed by Mary Jo
+    
+    #modelDir = "/pl/active/rittger_esp/SierraBighorn/Rdata"      
+
     ## default output path to fusion files
-    fusionDir = paste0(topDir, "/downscaled")
+    fusionDir = "/scratch/alpine/lost1845/active/SierraBighorn/downscaledv3"
+    ## v04_production has images generated until 2020.06.18
+    #fusionDir = "/scratch/alpine/lost1845/active/SierraBighorn/downscaledv4_production"
         
     ## default training size
     train.size = 3e+05
@@ -206,7 +210,7 @@ Env <- function() {
             ## later version files are in year subdirs
             ## do this so that any other sibling directories are ignored
             if (version > 1) {
-                dir <- file.path(dir, "????/")
+                dir <- file.path(dir, "????")
                 recursive <- TRUE
             } else {
                 recursive <- FALSE

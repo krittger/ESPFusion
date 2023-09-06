@@ -3,16 +3,27 @@
 # Copyright (C) 2019 Regents of the University of Colorado
 #
 
+print(paste0("Begin script:", Sys.time()))
+
 library(fields)
 library(raster)
 library(ranger)
 
+## Following 3 lines used for live debugging
+#library(devtools)
+#setwd("/projects/lost1845/ESPFusion")
+#devtools::load_all()
 myEnv <- ESPFusion::Env()
 studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 
 
+## FIX ME
+## add options as in other files for modis version, etc
+
 ## List data files and set up region bounds
 modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent",version=3)
+
+
 
 clear.sat.mask.file.names <- myEnv$allLandsatFiles("saturation_mask",version=1,includeCloudy=FALSE)
 clear.landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent",version=1,includeCloudy=FALSE)
@@ -88,51 +99,52 @@ nday <- length(mod.da)
 ## Load and organize feature data
 ##
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Elevation.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_Elevation.tif")
 elev <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 elev[elev < (-100)] <- NA
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Slope.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_Slope.tif")
 slope <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 slope[slope < 0] <- NA
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_Aspect.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_Aspect.tif")
 asp <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 asp[asp < (-2)] <- NA
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_LandClassNLCD.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_LandClassNLCD.tif")
 lty <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/landcover/LandFireEVH_ucsb/SSN.LandFireEVH_SN30m_height_m.v01.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/landcover/LandFireEVH_ucsb/SSN.LandFireEVH_SN30m_height_m.v01.tif")
 forest.height <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_NorthWestBarrierDistance.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_NorthWestBarrierDistance.tif")
 nw.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_SouthWestBarrierDistance.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_SouthWestBarrierDistance.tif")
 sw.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_WestBarrierDistance.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_WestBarrierDistance.tif")
 w.barrierdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_SouthWestDistanceToWater.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_SouthWestDistanceToWater.tif")
 sw.waterdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/SouthernSierraNevada_WestDistanceToWater.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/SouthernSierraNevada_WestDistanceToWater.tif")
 w.waterdist <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
 rm(out)
 
-out <- raster("/pl/active/SierraBighorn/predictors/downscaled_s_sierra_winds_dec_april_climatology_nldas2.tif")
+out <- raster("/pl/active/rittger_esp/SierraBighorn/predictors/downscaled_s_sierra_winds_dec_april_climatology_nldas2.tif")
 windspeed <- t(matrix(values(out),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
+
 rm(out)
 
 
@@ -281,3 +293,4 @@ save(ranger.regression,file=myEnv$getModelFilenameFor("regression",version=3))
 
 
 
+print(paste0("End Script:", Sys.time()))
