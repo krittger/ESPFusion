@@ -1,4 +1,4 @@
-# Fusion-MODIS-Landsat
+# ESPFusion
 Data fusion for downscaling Earth Surface Properties
 
 ## Configuring to run R
@@ -122,7 +122,7 @@ create an R environment with the required packages.
    
    ```
    cd /projects/$USER
-   git clone https://github.cokm/krittger/Fusion-MODIS-Landsat.git
+   git clone https://github.com/krittger/ESPFusion.git
    ```
 
 12. To develop and/or run ESPFusion routines, install them this way:
@@ -133,7 +133,7 @@ create an R environment with the required packages.
    devtools::install()
    ```
 
-   This will install the Fusion-MODIS-Landsat package components into the
+   This will install the ESPFusion package components into the
    currently running R installation (which is in the current conda env.)
    
 ## How to use RStudio
@@ -168,6 +168,41 @@ Add these lines to your ~/.bashrc:
    source ~/.bashrc
    ```
 
+To use it, open an interactive desktop with ondemand
+
+On the desktop, open a Terminal, activate our conda env and run rstudio:
+
+```
+conda activate r_ESPFusion
+rstudio
+```
+
+See the tutorial above for debugging a specific R file. In RStudio, you can run
+the script with debugSource:
+
+```
+> setwd('/path/to/ESPFusion'
+> debugSource('exec/twostep.downscaling.R');
+```
+
+but this will only run the twostep.downscaling.R script with the default
+arguments.  To change the defaults, I have not figured how how to do it directly
+in the debugSource call. I have successfully created a breakpoint after the parse_args call,
+and then manually set the opt argument value to something other than the default:
+
+In RStudio, set a breakpoint in twostep.downscaling.R at line 52, then:
+
+```
+> debugSource('exec/twostop.downscaling.R')
+Browse[2]> opt$year
+[1] 2000
+Browse[2]> opt$year <- 2002
+```
+
+Here's a pretty good tutorial on debugging in RStudio:
+
+https://support.posit.co/hc/en-us/articles/205612627-Debugging-with-the-RStudio-IDE
+
 ### Open an interactive desktop with ondemand:
 
 1. In the Web browser on your local machine, connect to
@@ -196,7 +231,7 @@ See the tutorial above for debugging a specific R file. In RStudio, you can run
 the script with debugSource:
 
 ```
-> setwd('/path/to/Fusion-MODIS-Landsat')
+> setwd('/path/to/ESPFusion')
 > debugSource('exec/twostep.downscaling.R');
 ```
 
@@ -318,7 +353,7 @@ To work on a new feature or bug fix:
 
    ```R
    devtools::check()
-n   ```
+   ```
 
 4. Make sure inline documentation is updated with your changes.
    Use roxygen2 to update documentation with:
