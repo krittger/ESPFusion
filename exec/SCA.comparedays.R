@@ -11,9 +11,9 @@ library(raster)
 library(ranger)
 
 ## Following 3 lines only for live debugging
-#library(devtools)
-#setwd("/projects/lost1845/ESPFusion")
-#devtools::load_all()
+library(devtools)
+setwd("/projects/lost1845/ESPFusion")
+devtools::load_all()
 myEnv <- ESPFusion::Env()
 studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 
@@ -22,11 +22,11 @@ suppressPackageStartupMessages(require(optparse))
 ### Parse inputs
 option_list = list(
   make_option(c("-i", "--modisVersion"), type="integer",
-              default=3,
+              default=5,
               help="version of MODIS input data to process [default=%default]",
               metavar="integer"),
   make_option(c("-m", "--modelVersion"), type="integer",
-              default=3,
+              default=5,
               help="version of model classifier/regresionfiles to use [default=%default]",
               metavar="integer"),
   make_option(c("-f", "--forceOverwrite"), type="logical",
@@ -178,7 +178,7 @@ for(day in 1:nday){
 	scastats0<- unlist(SCAcompare(myC,myT,thresh=0))
 	scastats15 <- unlist(SCAcompare(myC,myT,thresh=.15))
 	
-	## change v3 to modis version
+	## FIXME change Env.R file to create directories
 	write.table(scastats0,file=paste0(myEnv$getModelDir(),"/SCA/v", opt$modisVersion,"/", as.character(myEnv$getTrain.size()),"/0thresh.",format(mod.date[day],"%Y%m%d"),".csv"),row.names=FALSE,col.names=TRUE)	
 	write.table(scastats15,file=paste0(myEnv$getModelDir(),"/SCA/v",opt$modisVersion,"/", as.character(myEnv$getTrain.size()),"/15thresh.",format(mod.date[day],"%Y%m%d"),".csv"),row.names=FALSE,col.names=TRUE)
 
@@ -225,6 +225,7 @@ colnames(mean.summary.0vs15) <- c("0 thresh", "15 thresh")
 rownames(mean.summary.0vs15) <- sumstatnames
 print(mean.summary.0vs15)
 
+## FIXME create function in Env.R file to create directories
 
 png(paste0(opt$outDir, "/pix/",as.character(myEnv$getTrain.size()),"/statpix/SSN.downscaled.", as.character(myEnv$getTrain.size()),".png"),width=1300,height=600)
 par(mfrow=c(2,4))

@@ -4,8 +4,8 @@
 #SBATCH --account=ucb398_asc1
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=24
-#SBATCH --time=2:00:00
+#SBATCH --ntasks-per-node=64
+#SBATCH --time=4:00:00
 #SBATCH --qos=normal
 #SBATCH --output=/projects/lost1845/ESPFusion/output/run.SCA.comparedays.amilan.%j.out
 #SBATCH --job-name=run.SCA.comparedays.amilan

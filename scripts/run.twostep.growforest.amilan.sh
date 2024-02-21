@@ -5,7 +5,7 @@
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 #SBATCH --ntasks=64
-#SBATCH --time=2:00:00
+#SBATCH --time=4:00:00
 #SBATCH --qos=normal
 #SBATCH --output=/projects/lost1845/ESPFusion/output/run.twostep.growforest.amilan.%j.out
 #SBATCH --job-name=run.twostep.growforest.amilan

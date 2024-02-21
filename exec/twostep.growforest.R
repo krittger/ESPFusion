@@ -10,9 +10,9 @@ library(raster)
 library(ranger)
 
 ## Following 3 lines used for live debugging
-#library(devtools)
-#setwd("/projects/lost1845/ESPFusion")
-#devtools::load_all()
+library(devtools)
+setwd("/projects/lost1845/ESPFusion")
+devtools::load_all()
 myEnv <- ESPFusion::Env()
 studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 
@@ -21,7 +21,7 @@ studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 ## add options as in other files for modis version, etc
 
 ## List data files and set up region bounds
-modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent",version=3)
+modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent",version=5)
 
 
 
@@ -272,7 +272,7 @@ print(object.size(ranger.classifier),units="GB")
 ranger.classifier$prediction.error
 
 print(Sys.time())
-save(ranger.classifier,file=myEnv$getModelFilenameFor("classifier",version=3))
+save(ranger.classifier,file=myEnv$getModelFilenameFor("classifier",version=5))
 print(Sys.time())
 rm(ranger.classifier)
 
@@ -289,7 +289,7 @@ print(Sys.time())
 print(object.size(ranger.regression),units="GB")
 ranger.regression$prediction.error
 
-save(ranger.regression,file=myEnv$getModelFilenameFor("regression",version=3))
+save(ranger.regression,file=myEnv$getModelFilenameFor("regression",version=5))
 
 
 
