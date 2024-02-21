@@ -11,9 +11,9 @@ library(raster)
 library(ranger)
 
 ## Following 3 lines used for live debugging
-#library(devtools)
-#setwd("/projects/lost1845/ESPFusion")
-#devtools::load_all()
+library(devtools)
+setwd("/projects/lost1845/ESPFusion")
+devtools::load_all()
 myEnv <- ESPFusion::Env()
 studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 
@@ -22,11 +22,11 @@ suppressPackageStartupMessages(require(optparse))
 ### Parse inputs
 option_list = list(
   make_option(c("-i", "--modisVersion"), type="integer",
-              default=3,
+              default=5,
               help="version of MODIS input data to process [default=%default]",
               metavar="integer"),
   make_option(c("-m", "--modelVersion"), type="integer",
-              default=3,
+              default=5,
               help="version of model classifier/regresionfiles to use [default=%default]",
               metavar="integer"),
   make_option(c("-f", "--forceOverwrite"), type="logical",

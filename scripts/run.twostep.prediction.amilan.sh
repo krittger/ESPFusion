@@ -5,7 +5,7 @@
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=64
-#SBATCH --time=70:00:00
+#SBATCH --time=100:00:00
 #SBATCH --qos=long
 #SBATCH --output=/projects/lost1845/ESPFusion/output/run.twostep.prediction.amilan.%j.out
 #SBATCH --job-name=run.twostep.prediction.amilan

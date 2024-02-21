@@ -51,7 +51,7 @@ Env <- function() {
     #modelDir = "/pl/active/rittger_esp/SierraBighorn/Rdata"      
 
     ## default output path to fusion files
-    fusionDir = "/scratch/alpine/lost1845/active/SierraBighorn/downscaledv3"
+    fusionDir = "/scratch/alpine/lost1845/active/SierraBighorn/downscaledv5"
     ## v04_production has images generated until 2020.06.18
     #fusionDir = "/scratch/alpine/lost1845/active/SierraBighorn/downscaledv4_production"
         
