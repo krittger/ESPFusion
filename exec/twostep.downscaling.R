@@ -31,11 +31,11 @@ option_list = list(
                 help="day of year to process [default=%default]",
                 metavar="integer"),
     make_option(c("-i", "--modisVersion"), type="integer",
-                default=4,
+                default=5,
                 help="version of MODIS input data to process [default=%default]",
                 metavar="integer"),
     make_option(c("-m", "--modelVersion"), type="integer",
-                default=4,
+                default=5,
                 help="version of model classifier/regresionfiles to use [default=%default]",
                 metavar="integer"),
     make_option(c("-t", "--numTrees"), type="integer",
@@ -57,6 +57,10 @@ option_list = list(
 
 parser <- OptionParser(usage = "%prog [options]", option_list=option_list);
 opt <- parse_args(parser);
+
+if(opt$modisVersion < 5){
+    throw("modisVersion must be 5 or greater")
+}
 
 print(paste(Sys.time(), ": Begin"))
 print(sprintf("year=%d, doy=%d, numTrees=%d", opt$year, opt$dayOfYear, opt$numTrees))
@@ -92,15 +96,10 @@ landsat.sc.file.names <- myEnv$allLandsatFiles("snow_cover_percent")
 pred.rast <- raster(landsat.sc.file.names[1])
 
 ## Find the modis file to process
-if(opt$modisVersion < 4){
-  modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
+modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
                                          'snow_cover_percent',
                                          opt$modisVersion)
-} else{
-  modis.sc.file.name <- myEnv$modisFileFor(opt$year, opt$dayOfYear,
-                                           'snow_fraction',
-                                           opt$modisVersion)
-}
+
 modis.yyyymmdd <- myEnv$parseDateFrom(modis.sc.file.name)
 print(paste0("Processing MODIS file: ", modis.sc.file.name))
 
