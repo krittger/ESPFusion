@@ -9,11 +9,12 @@
 #' following method examples from here:
 #' https://www.cyclismo.org/tutorial/R/s3Classes.html
 #' 
+#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+#' Copyright (C) 2019 Regents of the University of Colorado
+#' 
 #' @return A list of directory locations used by the downscaling system
 #' @export
 #'
-#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
-#' Copyright (C) 2019 Regents of the University of Colorado
 #'
 Env <- function() {
 
@@ -45,13 +46,14 @@ Env <- function() {
     ## processing assumes one more levels down from here with 'modelName'
 
     ## Use this directory for new models 	
-    modelDir = "/scratch/alpine/lost1845/active/SierraBighorn/Rdata"
+    modelDir = paste0("/scratch/alpine/", Sys.getenv("LOGNAME"), "/active/SierraBighorn/Rdata")
     ## Use this directory for models previously developed by Mary Jo
     
     #modelDir = "/pl/active/rittger_esp/SierraBighorn/Rdata"      
 
     ## default output path to fusion files
-    fusionDir = "/scratch/alpine/lost1845/active/SierraBighorn/downscaledv5"
+    fusionDir = paste0("/scratch/alpine/", Sys.getenv("LOGNAME"), 
+                       "/active/SierraBighorn/downscaledv5")
     ## v04_production has images generated until 2020.06.18
     #fusionDir = "/scratch/alpine/lost1845/active/SierraBighorn/downscaledv4_production"
         
@@ -262,7 +264,7 @@ Env <- function() {
         getModelFilenameFor = function(fileType,
                                        modelName='forest',
                                        varName='SCA',
-                                       version=3) {
+                                       version=5) {
 
             validFileTypes <- c("regression", "classifier")
             if ( !(fileType %in% validFileTypes) ) {
@@ -354,7 +356,26 @@ Env <- function() {
 
             return(out)
             
+        },
+        
+        getSCAFilenameFor = function(dir,
+                                     threshold,
+                                     yyyymmddStr) {
+          out <- file.path(dir,
+            sprintf("%s.%s.csv", threshold, yyyymmddStr))
+          
+          return(out)
+        },
+        
+        getPixFilenameFor = function(dir,
+                                     filetype) {
+          out <- file.path(dir,
+                           sprintf("SSN.%s.%s.png", 
+                                   filetype, as.character(get("train.size", thisEnv))))
+          
+          return(out)
         }
+        
         
     )
 

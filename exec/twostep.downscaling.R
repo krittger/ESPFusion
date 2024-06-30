@@ -7,7 +7,8 @@ library(raster)
 library(ranger)
 
 library(devtools)
-setwd("/projects/lost1845/ESPFusion")
+proj_path <- paste0("/projects/", Sys.getenv("LOGNAME"), "/ESPFusion")
+setwd(proj_path)
 #devtools::install()
 
 suppressPackageStartupMessages(require(optparse))

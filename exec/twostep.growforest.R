@@ -11,17 +11,47 @@ library(ranger)
 
 ## Following 3 lines used for live debugging
 library(devtools)
-setwd("/projects/lost1845/ESPFusion")
+proj_path <- paste0("/projects/", Sys.getenv("LOGNAME"), "/ESPFusion")
+setwd(proj_path)
 devtools::load_all()
 myEnv <- ESPFusion::Env()
 studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
+
+suppressPackageStartupMessages(require(optparse))
+
+### Parse inputs
+option_list = list(
+  make_option(c("-i", "--modisVersion"), type="integer",
+              default=5,
+              help="version of MODIS input data to process [default=%default]",
+              metavar="integer"),
+  make_option(c("-m", "--modelVersion"), type="integer",
+              default=5,
+              help="version of model classifier/regresionfiles to use [default=%default]",
+              metavar="integer"),
+  make_option(c("-f", "--forceOverwrite"), type="logical",
+              default=FALSE,
+              help="force output files to overwrite any previous outputs [default=%default]",
+              metavar="logical"),
+  make_option(c("-o", "--outDir"), type="character",
+              default=myEnv$getFusionDir(),
+              help=paste0("top-level output directory\n",
+                          "\t\t[default=%default]\n",
+                          "\t\twill contain output for downscaled, prob.btwn,\n",
+                          "\t\tprob.hundred and regression"),
+              metavar="character")
+);
+
+parser <- OptionParser(usage = "%prog [options]", option_list=option_list);
+opt <- parse_args(parser);
+
 
 
 ## FIX ME
 ## add options as in other files for modis version, etc
 
 ## List data files and set up region bounds
-modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent",version=5)
+modis.sc.file.names <- myEnv$allModisFiles("snow_cover_percent",version=opt$modisVersion)
 
 
 
@@ -260,9 +290,13 @@ rm(vec,zero_indices,hundred_indices)
 
 
 
+## Create forest directory for classification and regression models
+ESPFusion::PrepModelDir(myEnv$getModelDir())
+
 ##
 ## Growing and saving the classification forest
 ##
+
 
 print(Sys.time())
 ranger.classifier <- ranger(class~ da+elev+slope+asp+lty+mod+lon+lat+ forest.height+ nw.barrierdist+ sw.barrierdist+ w.barrierdist+ sw.waterdist+ w.waterdist + windspeed,data=train.dat,num.trees=100,probability=TRUE) #,importance='impurity_corrected')
@@ -272,7 +306,7 @@ print(object.size(ranger.classifier),units="GB")
 ranger.classifier$prediction.error
 
 print(Sys.time())
-save(ranger.classifier,file=myEnv$getModelFilenameFor("classifier",version=5))
+save(ranger.classifier,file=myEnv$getModelFilenameFor("classifier",version=opt$modelVersion))
 print(Sys.time())
 rm(ranger.classifier)
 
@@ -289,7 +323,7 @@ print(Sys.time())
 print(object.size(ranger.regression),units="GB")
 ranger.regression$prediction.error
 
-save(ranger.regression,file=myEnv$getModelFilenameFor("regression",version=5))
+save(ranger.regression,file=myEnv$getModelFilenameFor("regression",version=opt$modelVersion))
 
 
 

@@ -4,12 +4,14 @@
 \alias{PrepOutDirs}
 \title{PrepOutDirs}
 \usage{
-PrepOutDirs(folder, tsize)
+PrepOutDirs(folder, tsize, year)
 }
 \arguments{
 \item{folder}{string name of directory where new structure will be created}
 
 \item{tsize}{num value of training size, used in new subdirectories}
+
+\item{year}{4-digit year of output data to be written}
 }
 \value{
 list of output directories, for
@@ -19,7 +21,11 @@ list of output directories, for
 Creates required output directory structure for downscaling.
 If any of the directories don't already exist they will be created.
 }
+\details{
+18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+Copyright (C) 2019 Regents of the University of Colorado
+}
 \examples{
-dirs = PrepOutDirs("/my/path/", 3e+05)
+dirs = PrepOutDirs("/my/path/", 3e+05, 2001)
 
 }

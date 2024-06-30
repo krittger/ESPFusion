@@ -12,7 +12,8 @@ library(ranger)
 
 ## Following 3 lines used for live debugging
 library(devtools)
-setwd("/projects/lost1845/ESPFusion")
+proj_path <- paste0("/projects/", Sys.getenv("LOGNAME"), "/ESPFusion")
+setwd(proj_path)
 devtools::load_all()
 myEnv <- ESPFusion::Env()
 studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
@@ -201,8 +202,8 @@ w.waterdist <- w.waterdist/1000
 # Classification and regression forests loaded
 
 print(Sys.time())
-load(myEnv$getModelFilenameFor("regression"))
-load(myEnv$getModelFilenameFor("classifier"))
+load(myEnv$getModelFilenameFor("regression", version = 5))
+load(myEnv$getModelFilenameFor("classifier", version = 5))
 print(Sys.time())
 
 

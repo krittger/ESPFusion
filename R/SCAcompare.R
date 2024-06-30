@@ -1,6 +1,9 @@
 #' Compares fractional snow-covered area (fSCA) images
 #'
 #' This function compares 2 fSCA images.
+#' 
+#' #' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+#' Copyright (C) 2019 Regents of the University of Colorado
 #'
 #' @param myC first image
 #' @param myT second image
@@ -8,8 +11,6 @@
 #' @return stats list of comparison statistics
 #' @export
 #'
-#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
-#' Copyright (C) 2019 Regents of the University of Colorado
 #'
 SCAcompare <- function(myC,myT,thresh) #remove NA's from myC and myT
 {

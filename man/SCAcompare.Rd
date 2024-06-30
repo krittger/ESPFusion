@@ -19,3 +19,7 @@ stats list of comparison statistics
 \description{
 This function compares 2 fSCA images.
 }
+\details{
+#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+Copyright (C) 2019 Regents of the University of Colorado
+}

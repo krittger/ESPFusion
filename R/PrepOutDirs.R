@@ -2,6 +2,10 @@
 #'
 #' Creates required output directory structure for downscaling.
 #' If any of the directories don't already exist they will be created.
+#' 
+#' 
+#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+#' Copyright (C) 2019 Regents of the University of Colorado
 #'
 #' @param folder string name of directory where new structure will be created
 #' @param tsize num value of training size, used in new subdirectories
@@ -15,8 +19,6 @@
 #' 
 #' @export
 #'
-#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
-#' Copyright (C) 2019 Regents of the University of Colorado
 #'
 PrepOutDirs <- function(folder, tsize, year) {
     print(paste0("Prepping ", folder, "..."))
@@ -43,3 +45,4 @@ PrepOutDirs <- function(folder, tsize, year) {
     return(outDirs)
     
 }
+

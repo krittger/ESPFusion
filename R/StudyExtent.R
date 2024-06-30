@@ -2,12 +2,14 @@
 #'
 #' This class stores descriptive information for ESPFusion study extents
 #'
+#' 
+#' #' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+#' Copyright (C) 2019 Regents of the University of Colorado
+#' 
 #' @return List with descriptive characteristics for the requested study extent
 #' 
 #' @export
 #'
-#' 18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
-#' Copyright (C) 2019 Regents of the University of Colorado
 #'
 StudyExtent <- function(extentName) {
 

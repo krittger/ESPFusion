@@ -19,4 +19,7 @@ https://tinyheero.github.io/jekyll/update/2015/07/26/making-your-first-R-package
 
 following method examples from here:
 https://www.cyclismo.org/tutorial/R/s3Classes.html
+
+18 Mar 2020 M. J. Brodzik brodzik@colorado.edu 
+Copyright (C) 2019 Regents of the University of Colorado
 }

@@ -5,6 +5,9 @@
 
 print(paste0("Begin script:", Sys.time()))
 
+proj_path <- paste0("/projects/", Sys.getenv("LOGNAME"), "/ESPFusion")
+setwd(proj_path)
+
 #specify the number of points to be randomly sampled from the good indices each day. 
 library(fields)
 library(raster)
@@ -12,8 +15,9 @@ library(ranger)
 
 ## Following 3 lines only for live debugging
 library(devtools)
-setwd("/projects/lost1845/ESPFusion")
+
 devtools::load_all()
+
 myEnv <- ESPFusion::Env()
 studyExtent <- ESPFusion::StudyExtent("SouthernSierraNevada")
 
@@ -117,6 +121,9 @@ rm(these,mod.yr)
 mod.da <- mod.da + 1
 nday <- length(mod.da)
 
+## Create SCA directory if needed, return directory
+SCADir <- ESPFusion::PrepSCADir(myEnv$getModelDir(), opt$modisVersion, as.character(myEnv$getTrain.size()))
+
 for(day in 1:nday){ 
 	
 	print(day)
@@ -127,9 +134,18 @@ for(day in 1:nday){
 	#	landsat.path <- clear.landsat.path
 	#}
 	
-  downscaledFile <- paste0(opt$outDir, "/downscaled/", as.character(myEnv$getTrain.size()), "/", 
-                           format(mod.date[day],"%Y"), "/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),
-                           ".v", opt$modisVersion, ".", as.character(myEnv$getTrain.size()),".tif")
+  #downscaledFile <- paste0(opt$outDir, "/downscaled/", as.character(myEnv$getTrain.size()), "/", 
+  #                         format(mod.date[day],"%Y"), "/SSN.downscaled.", format(mod.date[day],"%Y%m%d"),
+  #                         ".v", opt$modisVersion, ".", as.character(myEnv$getTrain.size()),".tif")
+
+  ### Get output directories
+  outDirs <- ESPFusion::PrepOutDirs(opt$outDir, myEnv$getTrain.size(), format(mod.date[day],"%Y"))
+  
+  downscaledFile <- myEnv$getDownscaledFilenameFor(outDirs$downscaled,
+                                                   "downscaled",
+                                                   studyExtent$shortName,
+                                                   format(mod.date[day],"%Y%m%d"),
+                                                   version=opt$modelVersion)
   pred.rast <- raster(downscaledFile)
 	#pred.rast <- raster(paste0("/scratch/alpine/lost1845/active/SierraBighorn/downscaledv3/downscaled/",as.character(train.size),"/SSN.downscaled.",     format(mod.date[day],"%Y%m%d"),".v3.tif"))
 	pred.mat <- t(matrix(values(pred.rast),nc=studyExtent$highResRows,nr=studyExtent$highResCols))
@@ -178,10 +194,20 @@ for(day in 1:nday){
 	scastats0<- unlist(SCAcompare(myC,myT,thresh=0))
 	scastats15 <- unlist(SCAcompare(myC,myT,thresh=.15))
 	
-	## FIXME change Env.R file to create directories
-	write.table(scastats0,file=paste0(myEnv$getModelDir(),"/SCA/v", opt$modisVersion,"/", as.character(myEnv$getTrain.size()),"/0thresh.",format(mod.date[day],"%Y%m%d"),".csv"),row.names=FALSE,col.names=TRUE)	
-	write.table(scastats15,file=paste0(myEnv$getModelDir(),"/SCA/v",opt$modisVersion,"/", as.character(myEnv$getTrain.size()),"/15thresh.",format(mod.date[day],"%Y%m%d"),".csv"),row.names=FALSE,col.names=TRUE)
+	print(downscaledFile)
+	print(scastats0)
+	print(scastats15)
+	print(as.data.frame(c(length(subset.these), length(myC), length(myT))))
+	
 
+	#write.table(scastats0,file=paste0(myEnv$getModelDir(),"/SCA/v", opt$modisVersion,"/", as.character(myEnv$getTrain.size()),"/0thresh.",format(mod.date[day],"%Y%m%d"),".csv"),row.names=FALSE,col.names=TRUE)	
+	#write.table(scastats15,file=paste0(myEnv$getModelDir(),"/SCA/v",opt$modisVersion,"/", as.character(myEnv$getTrain.size()),"/15thresh.",format(mod.date[day],"%Y%m%d"),".csv"),row.names=FALSE,col.names=TRUE)
+  write.table(scastats0, 
+              file = myEnv$getSCAFilenameFor(SCADir, "0thresh", format(mod.date[day],"%Y%m%d")),
+              row.names=FALSE,col.names=TRUE)
+  write.table(scastats15, 
+              file = myEnv$getSCAFilenameFor(SCADir, "15thresh", format(mod.date[day],"%Y%m%d")),
+              row.names=FALSE,col.names=TRUE)
 		
 }
 
@@ -194,8 +220,7 @@ sumstatnames <- c("precision", "recall", "specificity","F statistic","accuracy",
 
 #to be run after all tables are saved
 
-all_files <- list.files(paste0(myEnv$getModelDir(),"/SCA/v",opt$modisVersion,
-                               "/", as.character(myEnv$getTrain.size())), 
+all_files <- list.files(SCADir, 
                         pattern = "*.csv",full.names = TRUE,recursive=TRUE)
 
 files.thresh0 <-  all_files[grepl("0thresh", all_files)]
@@ -225,9 +250,14 @@ colnames(mean.summary.0vs15) <- c("0 thresh", "15 thresh")
 rownames(mean.summary.0vs15) <- sumstatnames
 print(mean.summary.0vs15)
 
-## FIXME create function in Env.R file to create directories
+## Create pix directory if needed, return directory
+pixDir <- ESPFusion::PrepPixDir(opt$outDir, as.character(myEnv$getTrain.size()))
 
-png(paste0(opt$outDir, "/pix/",as.character(myEnv$getTrain.size()),"/statpix/SSN.downscaled.", as.character(myEnv$getTrain.size()),".png"),width=1300,height=600)
+#png(paste0(opt$outDir, "/pix/",as.character(myEnv$getTrain.size()),
+#           "/statpix/SSN.downscaled.", as.character(myEnv$getTrain.size()),".png"),
+#    width=1300,height=600)
+png(myEnv$getPixFilenameFor(pixDir, "downscaled"), 
+    width=1300,height=600)
 par(mfrow=c(2,4))
 plot(mod.da[1:nday],scastats0[1,],main=paste0(sumstatnames[1]),ylim=c(0,1),xlab='day of year',ylab='',las=1,cex.lab=1.5, cex.axis=1.5, cex.main=2)
 plot(mod.da[1:nday],scastats0[2,],main=paste0(sumstatnames[2]),ylim=c(0,1),xlab='day of year',ylab='',las=1,cex.lab=1.5, cex.axis=1.5, cex.main=2)
@@ -242,14 +272,18 @@ dev.off()
 
 
 
-png(paste0(opt$outDir, "/pix/",as.character(myEnv$getTrain.size()),"/statpix/SSN.downscaled.condTsnow", as.character(myEnv$getTrain.size()),".png"),width=1300,height=400)
+#png(paste0(opt$outDir, "/pix/",as.character(myEnv$getTrain.size()),"/statpix/SSN.downscaled.condTsnow", as.character(myEnv$getTrain.size()),".png"),width=1300,height=400)
+png(myEnv$getPixFilenameFor(pixDir, "downscaled.condTsnow"), 
+    width=1300,height=400)
 par(mfrow=c(1,3))
 plot(mod.da[1:nday],scastats0[9,],main=paste0(sumstatnames[9]),ylim=c(-1,1),xlab='day of year',ylab='',las=1,cex.lab=1.5, cex.axis=1.5, cex.main=2)
 plot(mod.da[1:nday],scastats0[10,],main=paste0(sumstatnames[10]),ylim=c(-1,1),xlab='day of year',ylab='',las=1,cex.lab=1.5, cex.axis=1.5, cex.main=2)
 plot(mod.da[1:nday],scastats0[11,],main=paste0(sumstatnames[11]),ylim=c(0,1),xlab='day of year',ylab='',las=1,cex.lab=1.5, cex.axis=1.5, cex.main=2)
 dev.off()
 
-png(paste0(opt$outDir, "/pix/",as.character(myEnv$getTrain.size()),"/statpix/SSN.downscaled.condCTsnow", as.character(myEnv$getTrain.size()),".png"),width=1300,height=400)
+#png(paste0(opt$outDir, "/pix/",as.character(myEnv$getTrain.size()),"/statpix/SSN.downscaled.condCTsnow", as.character(myEnv$getTrain.size()),".png"),width=1300,height=400)
+png(myEnv$getPixFilenameFor(pixDir, "downscaled.condCTsnow"), 
+    width=1300,height=400)
 par(mfrow=c(1,3))
 plot(mod.da[1:nday],scastats0[12,],main=paste0(sumstatnames[12]),ylim=c(-1,1),xlab='day of year',ylab='',las=1,cex.lab=1.5, cex.axis=1.5, cex.main=2)
 plot(mod.da[1:nday],scastats0[13,],main=paste0(sumstatnames[13]),ylim=c(-1,1),xlab='day of year',ylab='',las=1,cex.lab=1.5, cex.axis=1.5, cex.main=2)

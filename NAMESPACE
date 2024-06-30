@@ -2,6 +2,9 @@
 
 export(Env)
 export(InfoFor)
+export(PrepModelDir)
 export(PrepOutDirs)
+export(PrepPixDir)
+export(PrepSCADir)
 export(SCAcompare)
 export(StudyExtent)
